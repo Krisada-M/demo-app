@@ -8,3 +8,18 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+
+# React Native
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.hermes.** { *; }
+-keep class com.facebook.jni.** { *; }
+-keepclassmembers class * extends com.facebook.react.bridge.NativeModule { *; }
+-keepclassmembers class * extends com.facebook.react.bridge.JavaScriptModule { *; }
+-keep @com.facebook.react.module.annotations.ReactModule class * { *; }
+-dontwarn com.facebook.react.**
+-dontwarn com.facebook.hermes.**
+-dontwarn com.facebook.jni.**
+
+# Health Connect
+-keep class dev.matinzd.healthconnect.** { *; }
+-dontwarn dev.matinzd.healthconnect.**

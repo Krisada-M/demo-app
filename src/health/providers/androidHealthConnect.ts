@@ -104,14 +104,20 @@ const getDailySeries = async (
     return ranges.map(({ date }) => grouped.get(formatDate(date)) ?? 0);
   }
 
+  const aggregatedByBuckets = await aggregateByBuckets(
+    recordType,
+    ranges.map(range => ({ start: range.start, end: range.end })),
+  );
+  if (aggregatedByBuckets) {
+    return aggregatedByBuckets;
+  }
+
   const fromRecords = await sumRecordsByDay(recordType, start, end);
   if (fromRecords) {
     return ranges.map(({ date }) => fromRecords.get(formatDate(date)) ?? 0);
   }
 
-  return Promise.all(
-    ranges.map(range => fetchAggregation(recordType, range.start, range.end)),
-  );
+  return ranges.map(() => 0);
 };
 
 const getHourlySeries = async (
@@ -126,14 +132,20 @@ const getHourlySeries = async (
     return ranges.map(({ hourIndex }) => grouped.get(hourIndex) ?? 0);
   }
 
+  const aggregatedByBuckets = await aggregateByBuckets(
+    recordType,
+    ranges.map(range => ({ start: range.start, end: range.end })),
+  );
+  if (aggregatedByBuckets) {
+    return aggregatedByBuckets;
+  }
+
   const fromRecords = await sumRecordsByHour(recordType, start, end);
   if (fromRecords) {
     return ranges.map(({ hourIndex }) => fromRecords.get(hourIndex) ?? 0);
   }
 
-  return Promise.all(
-    ranges.map(range => fetchAggregation(recordType, range.start, range.end)),
-  );
+  return ranges.map(() => 0);
 };
 
 const aggregateByDuration = async (
@@ -233,24 +245,28 @@ const sumRecordsByHour = async (
   }
 };
 
-const fetchAggregation = async (
+const aggregateByBuckets = async (
   recordType: MetricRecordType,
-  start: Date,
-  end: Date,
-): Promise<number> => {
+  ranges: { start: Date; end: Date }[],
+): Promise<number[] | null> => {
   try {
-    const result = await aggregateRecord({
-      recordType,
-      timeRangeFilter: {
-        operator: 'between',
-        startTime: toLocalISOString(start),
-        endTime: toLocalISOString(end),
-      },
-    });
-    return getAggregateValue(recordType, result);
+    const results = await Promise.all(
+      ranges.map(range =>
+        aggregateRecord({
+          recordType,
+          timeRangeFilter: {
+            operator: 'between',
+            startTime: toLocalISOString(range.start),
+            endTime: toLocalISOString(range.end),
+          },
+        }),
+      ),
+    );
+
+    return results.map(result => getAggregateValue(recordType, result));
   } catch (error) {
-    console.error(`Error aggregating ${recordType}:`, error);
-    return 0;
+    console.warn(`Error aggregating ${recordType} buckets:`, error);
+    return null;
   }
 };
 
@@ -265,7 +281,7 @@ const getAggregateValue = (
     return result.ACTIVE_CALORIES_TOTAL?.inKilocalories ?? 0;
   }
   if (recordType === 'Distance') {
-    return result.DISTANCE_TOTAL?.inMeters ?? 0;
+    return result.DISTANCE?.inMeters ?? 0;
   }
   return 0;
 };
