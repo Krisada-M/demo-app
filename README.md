@@ -20,6 +20,8 @@ Integration with HealthKit (iOS) and Health Connect (Android).
    ```
 5. Run `pod install` in the `ios` directory.
 
+Note: iOS is using @kingstinct only (no custom Swift background tracking). Background sync is not available in this mode.
+
 ### Android
 
 1. `AndroidManifest.xml` has been updated with:

@@ -103,6 +103,7 @@ Use Health Connect Toolbox to read/write records directly and validate app integ
 - Use WorkManager for periodic writes (15 min minimum), and throttle writes to no more than once per 5 minutes.
 - Use a Foreground Service only when continuous tracking is enabled; provide a user-visible toggle.
 - Defer GPS tracking to explicit "Outdoor mode" sessions and stop when app is backgrounded.
+- iOS (library-only): no native background measurement. Use @kingstinct in the foreground only.
 
 ## 4) Validation protocol (accuracy re-check)
 
