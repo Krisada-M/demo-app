@@ -42,8 +42,7 @@ class HealthTrackingModule(private val reactContext: ReactApplicationContext) : 
 
   @ReactMethod
   fun syncNow() {
-    val request = OneTimeWorkRequestBuilder<HealthSyncWorker>().build()
-    WorkManager.getInstance(reactContext).enqueue(request)
+    HealthSyncScheduler.scheduleNow(reactContext)
   }
 
   @ReactMethod

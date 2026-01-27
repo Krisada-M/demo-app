@@ -63,7 +63,7 @@ Recommendation: Prefer calibration. Use height-based only as a last-resort defau
 
 Core formula
 
-- kcal_per_min = 0.0175 _ MET _ weight_kg
+- kcal*per_min = 0.0175 * MET \_ weight_kg
 - kcal = kcal_per_min \* duration_min
 
 MET lookup
@@ -96,6 +96,13 @@ store them for future delete/replace strategies.
 ### 3.4 Integration testing tool
 
 Use Health Connect Toolbox to read/write records directly and validate app integration.
+
+### 3.5 Battery and background policy (recommended)
+
+- Prefer step counter sensor (low power) over continuous GPS.
+- Use WorkManager for periodic writes (15 min minimum), and throttle writes to no more than once per 5 minutes.
+- Use a Foreground Service only when continuous tracking is enabled; provide a user-visible toggle.
+- Defer GPS tracking to explicit "Outdoor mode" sessions and stop when app is backgrounded.
 
 ## 4) Validation protocol (accuracy re-check)
 
@@ -169,6 +176,8 @@ Keep the solution minimal, stable, and battery-conscious.
 ```
 
 ## 6) References (quick list)
+
+- Battery optimizations and background execution: use Foreground Service only when continuous tracking is enabled; WorkManager for periodic writes.
 
 - Android step sensor + activity recognition permission
 - Health Connect write-data best practices (including zeros)

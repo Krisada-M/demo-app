@@ -17,7 +17,7 @@ object HealthSyncScheduler {
       .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
       .build()
 
-    val request = PeriodicWorkRequestBuilder<HealthSyncWorker>(15, TimeUnit.MINUTES)
+    val request = PeriodicWorkRequestBuilder<HealthSyncWorker>(1, TimeUnit.HOURS)
       .setConstraints(constraints)
       .build()
 
@@ -26,6 +26,19 @@ object HealthSyncScheduler {
       ExistingPeriodicWorkPolicy.KEEP,
       request,
     )
+  }
+
+  fun scheduleNow(context: Context) {
+    val constraints = Constraints.Builder()
+      .setRequiresBatteryNotLow(true)
+      .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+      .build()
+
+    val request = androidx.work.OneTimeWorkRequestBuilder<HealthSyncWorker>()
+      .setConstraints(constraints)
+      .build()
+
+    WorkManager.getInstance(context).enqueue(request)
   }
 
   fun cancel(context: Context) {
