@@ -201,7 +201,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={tokens.colors.accent} />

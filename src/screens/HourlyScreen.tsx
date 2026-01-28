@@ -6,6 +6,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { HealthLayer } from '../health/HealthLayer';
 import { HealthStatus, HourlyMetrics, MetricType } from '../health/models';
 import HourlyChart from '../components/HourlyChart';
@@ -154,7 +155,7 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.backgroundGradient} />
       <View style={styles.backgroundGlow} />
       {loading ? (
@@ -176,7 +177,7 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
