@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Animated,
   View,
@@ -13,6 +19,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HealthLayer } from '../health/HealthLayer';
 import { DailyMetrics, HealthStatus, MetricType } from '../health/models';
+import { getSyncStatus, syncNow } from '../health/android/HealthTracking';
+import type { SyncStatus } from '../health/android/HealthTracking';
 import MetricTabs from '../components/MetricTabs';
 import MetricChart from '../components/MetricChart';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -76,6 +84,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const contentOpacity = useRef(new Animated.Value(0)).current;
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   const loadData = async (isRefresh = false) => {
     if (isRefresh) {
@@ -107,6 +117,19 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const refreshSyncStatus = useCallback(async () => {
+    if (Platform.OS !== 'android') return;
+    const healthStatus = await getSyncStatus();
+
+    setSyncStatus(healthStatus);
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      refreshSyncStatus();
+    }
+  }, [loading, refreshSyncStatus]);
 
   useEffect(() => {
     if (!loading) {
@@ -168,6 +191,28 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     ],
     [steps, calories, distance],
   );
+
+  const handleSync = () => {
+    if (Platform.OS !== 'android') return;
+    setSyncing(true);
+    syncNow();
+    setTimeout(() => {
+      refreshSyncStatus();
+      setSyncing(false);
+    }, 600);
+  };
+
+  const formatBangkokTime = (utcMs?: number) => {
+    if (!utcMs) return 'Never synced';
+    const offsetMs = 7 * 60 * 60 * 1000;
+    const date = new Date(utcMs + offsetMs);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const mins = String(date.getUTCMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${mins} BKK`;
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -254,6 +299,54 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               <MetricChart data={dailyData} metric={selectedMetric} />
             )}
 
+            {Platform.OS === 'android' ? (
+              <View style={styles.syncStatusCard}>
+                <View>
+                  <Text style={styles.syncStatusTitle}>Tracking Status</Text>
+                  <Text style={styles.syncStatusText}>
+                    {syncStatus?.trackingEnabled
+                      ? 'Tracking on'
+                      : 'Tracking off'}
+                  </Text>
+                  <Text style={styles.syncStatusMeta}>
+                    {formatBangkokTime(syncStatus?.lastWriteUtcMs)}
+                  </Text>
+                  <Text style={styles.syncStatusMeta}>
+                    Pending buckets: {syncStatus?.pendingCount ?? 0}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.syncButton,
+                    syncing && styles.syncButtonDisabled,
+                  ]}
+                  onPress={handleSync}
+                  disabled={syncing}
+                >
+                  <Text style={styles.syncButtonText}>
+                    {syncing ? 'Syncing...' : 'Sync now'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Quick Actions</Text>
+              <Text style={styles.sectionMeta}>Manage your data</Text>
+            </View>
+
+            <View style={styles.actionRow}>
+              <ActionButton
+                label="Profile"
+                onPress={() => navigation.navigate('Profile')}
+              />
+              <View style={styles.actionSpacer} />
+              <ActionButton
+                label="Debug"
+                onPress={() => navigation.navigate('Debug')}
+              />
+            </View>
+
             <TouchableOpacity
               style={[
                 styles.button,
@@ -294,6 +387,18 @@ const SummaryCard = ({
     <Text style={styles.cardValue}>{value.toLocaleString()}</Text>
     {unit ? <Text style={styles.cardUnit}>{unit}</Text> : null}
   </View>
+);
+
+const ActionButton = ({
+  label,
+  onPress,
+}: {
+  label: string;
+  onPress: () => void;
+}) => (
+  <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+    <Text style={styles.actionButtonText}>{label}</Text>
+  </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
@@ -443,6 +548,74 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 32,
     color: '#8A94A6',
+  },
+  syncStatusCard: {
+    marginTop: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#1B1F23',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  syncStatusTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0B1C2E',
+  },
+  syncStatusText: {
+    marginTop: 4,
+    fontSize: 13,
+    color: '#1F2937',
+    fontWeight: '600',
+  },
+  syncStatusMeta: {
+    marginTop: 2,
+    fontSize: 11,
+    color: '#6B7280',
+  },
+  syncButton: {
+    backgroundColor: '#1E5FBF',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+  },
+  syncButtonDisabled: {
+    opacity: 0.6,
+  },
+  syncButtonText: {
+    color: '#F8FAFC',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  actionSpacer: {
+    width: 12,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    shadowColor: '#1B1F23',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  actionButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0B1C2E',
   },
   alertBox: {
     backgroundColor: '#FFE5E5',

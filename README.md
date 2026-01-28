@@ -8,6 +8,7 @@ Integration with HealthKit (iOS) and Health Connect (Android).
 
 ### iOS
 
+
 1. Open `ios/HealthDemo.xcworkspace` in Xcode.
 2. Go to **Signing & Capabilities**.
 3. Click **+ Capability** and add **HealthKit**.
@@ -18,7 +19,10 @@ Integration with HealthKit (iOS) and Health Connect (Android).
    ```
 5. Run `pod install` in the `ios` directory.
 
+Note: iOS is using @kingstinct only (no custom Swift background tracking). Background sync is not available in this mode.
+
 ### Android
+
 
 1. `AndroidManifest.xml` has been updated with:
    - `android.permission.health.READ_STEPS`
@@ -34,7 +38,12 @@ Integration with HealthKit (iOS) and Health Connect (Android).
 - **Charts**: `victory-native`
 - **Navigation**: `@react-navigation/native`
 
+## Docs
+
+- `docs/health-connect-spec.md` (formulas, Health Connect best practices, validation)
+
 ## Unified API
+
 
 All health logic is centralized in `src/health/HealthLayer.ts`. UI components interact only with this layer.
 
