@@ -1,11 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import {
-  VictoryBar,
-  VictoryChart,
-  VictoryTheme,
-  VictoryAxis,
-} from 'victory-native';
+import { VictoryTheme } from 'victory-native';
+import { VictoryAxis, VictoryBar, VictoryChart } from './NativeVictory';
 import { HourlyMetrics, MetricType } from '../health/models';
 
 interface Props {
