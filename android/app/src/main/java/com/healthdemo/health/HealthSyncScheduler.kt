@@ -12,11 +12,8 @@ object HealthSyncScheduler {
   private const val WORK_NAME = "health_sync"
 
   fun schedule(context: Context) {
-    val constraints = Constraints.Builder()
-      .setRequiresBatteryNotLow(true)
-      .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-      .build()
-
+    // WorkManager is used for reliable hourly sync that survives app restarts and reboots.
+    val constraints = buildConstraints()
     val request = PeriodicWorkRequestBuilder<HealthSyncWorker>(1, TimeUnit.HOURS)
       .setConstraints(constraints)
       .build()
@@ -29,11 +26,7 @@ object HealthSyncScheduler {
   }
 
   fun scheduleNow(context: Context) {
-    val constraints = Constraints.Builder()
-      .setRequiresBatteryNotLow(true)
-      .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-      .build()
-
+    val constraints = buildConstraints()
     val request = androidx.work.OneTimeWorkRequestBuilder<HealthSyncWorker>()
       .setConstraints(constraints)
       .build()
@@ -43,5 +36,12 @@ object HealthSyncScheduler {
 
   fun cancel(context: Context) {
     WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+  }
+
+  private fun buildConstraints(): Constraints {
+    return Constraints.Builder()
+      .setRequiresBatteryNotLow(true)
+      .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+      .build()
   }
 }

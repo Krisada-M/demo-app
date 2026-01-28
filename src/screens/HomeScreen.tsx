@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   View,
@@ -19,12 +13,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HealthLayer } from '../health/HealthLayer';
 import { DailyMetrics, HealthStatus, MetricType } from '../health/models';
-import { getSyncStatus, syncNow } from '../health/android/HealthTracking';
-import type { SyncStatus } from '../health/android/HealthTracking';
-import MetricTabs from '../components/MetricTabs';
-import MetricChart from '../components/MetricChart';
+import { syncNow } from '../health/android/HealthTracking';
+import { useSyncStatus } from '../health/android/useSyncStatus';
+import { formatBangkokTime } from '../health/utils/formatTime';
+import DailyChart from '../components/DailyChart';
+import MetricSummaryCard from '../components/MetricSummaryCard';
+import SegmentedMetricTabs from '../components/SegmentedMetricTabs';
+import WeeklyProgressIndicator from '../components/WeeklyProgressIndicator';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { tokens } from '../ui/tokens';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -45,25 +43,22 @@ const MONTHS = [
 
 const METRIC_META: Record<
   MetricType,
-  { label: string; unit: string; accent: string; tint: string }
+  { label: string; unit: string; icon: string }
 > = {
   steps: {
     label: 'Steps',
     unit: 'steps',
-    accent: '#1E5FBF',
-    tint: '#E8F1FF',
+    icon: 'S',
   },
   activeCaloriesKcal: {
     label: 'Calories',
     unit: 'kcal',
-    accent: '#D6792B',
-    tint: '#FFF1E4',
+    icon: 'C',
   },
   distanceMeters: {
     label: 'Distance',
     unit: 'm',
-    accent: '#1F8A5C',
-    tint: '#E7F6EE',
+    icon: 'D',
   },
 };
 
@@ -77,6 +72,9 @@ const parseLocalDate = (value: string) => {
 const formatShortDate = (date: Date) =>
   `${MONTHS[date.getMonth()]} ${date.getDate()}`;
 
+const formatFullDate = (date: Date) =>
+  `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('steps');
   const [dailyData, setDailyData] = useState<DailyMetrics[]>([]);
@@ -84,7 +82,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const contentOpacity = useRef(new Animated.Value(0)).current;
-  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const { status: syncStatus, refresh: refreshSyncStatus } = useSyncStatus();
   const [syncing, setSyncing] = useState(false);
 
   const loadData = async (isRefresh = false) => {
@@ -116,13 +114,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   useEffect(() => {
     loadData();
-  }, []);
-
-  const refreshSyncStatus = useCallback(async () => {
-    if (Platform.OS !== 'android') return;
-    const healthStatus = await getSyncStatus();
-
-    setSyncStatus(healthStatus);
   }, []);
 
   useEffect(() => {
@@ -183,14 +174,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     return `${formatShortDate(startDate)} - ${formatShortDate(endDate)}`;
   }, [dailyData]);
 
-  const summaryCards = useMemo(
-    () => [
-      { key: 'steps', value: steps },
-      { key: 'activeCaloriesKcal', value: calories },
-      { key: 'distanceMeters', value: distance },
-    ],
-    [steps, calories, distance],
-  );
+  const selectedMeta = METRIC_META[selectedMetric];
+  const selectedValue =
+    selectedMetric === 'steps'
+      ? steps
+      : selectedMetric === 'activeCaloriesKcal'
+      ? calories
+      : distance;
+  const todayLabel = formatFullDate(new Date());
 
   const handleSync = () => {
     if (Platform.OS !== 'android') return;
@@ -202,328 +193,265 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     }, 600);
   };
 
-  const formatBangkokTime = (utcMs?: number) => {
-    if (!utcMs) return 'Never synced';
-    const offsetMs = 7 * 60 * 60 * 1000;
-    const date = new Date(utcMs + offsetMs);
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const hours = String(date.getUTCHours()).padStart(2, '0');
-    const mins = String(date.getUTCMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${mins} BKK`;
+  const syncStateLabel = () => {
+    if (!syncStatus) return 'Idle';
+    if (syncStatus.status === 'SYNCING') return 'Syncing';
+    if (syncStatus.status === 'ERROR') return 'Error';
+    return 'Idle';
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={tokens.colors.accent} />
           <Text style={styles.loadingText}>Loading your activity...</Text>
         </View>
       ) : (
-        <ScrollView
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => loadData(true)}
-            />
-          }
-          contentContainerStyle={styles.content}
-        >
-          <View style={styles.heroSurface}>
-            <View style={styles.heroGlow} />
-            <View style={styles.heroGlowSecondary} />
-            <View style={styles.heroHeaderRow}>
-              <View style={styles.heroPill}>
-                <Text style={styles.heroPillText}>Today</Text>
-              </View>
-              <Text style={styles.heroRange}>{rangeLabel}</Text>
-            </View>
-            <Text style={styles.heroTitle}>Daily Activity</Text>
-            <Text style={styles.heroSubtitle}>
-              Track your movement across steps, calories, and distance.
-            </Text>
-          </View>
-
-          {status !== HealthStatus.OK ? (
-            <View style={isErrorStatus ? styles.alertBox : styles.infoBox}>
-              <Text style={isErrorStatus ? styles.alertText : styles.infoText}>
-                {renderStatusMessage()}
-              </Text>
-            </View>
-          ) : null}
-
-          <Animated.View
-            style={{
-              opacity: contentOpacity,
-              transform: [
-                {
-                  translateY: contentOpacity.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [8, 0],
-                  }),
-                },
-              ],
-            }}
+        <View style={styles.screenWrap}>
+          <View style={styles.backgroundGradient} />
+          <View style={styles.backgroundGlow} />
+          <ScrollView
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => loadData(true)}
+              />
+            }
+            contentContainerStyle={styles.content}
           >
-            <View style={styles.summaryGrid}>
-              {summaryCards.map(card => {
-                const meta = METRIC_META[card.key as MetricType];
-                return (
-                  <SummaryCard
-                    key={card.key}
-                    label={meta.label}
-                    value={card.value}
-                    unit={meta.unit}
-                    accent={meta.accent}
-                    tint={meta.tint}
-                  />
-                );
-              })}
+            <View style={styles.headerBlock}>
+              <Text style={styles.todayLabel}>Today</Text>
+              <Text style={styles.headline}>Nurture your daily balance</Text>
+              <Text style={styles.dateTextCentered}>{todayLabel}</Text>
             </View>
 
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Last 7 Days</Text>
-              <Text style={styles.sectionMeta}>Daily totals</Text>
-            </View>
+            <WeeklyProgressIndicator />
 
-            <MetricTabs
-              selected={selectedMetric}
-              onSelect={setSelectedMetric}
-            />
-
-            {dailyData.length === 0 ? (
-              <Text style={styles.noDataText}>No chart data available.</Text>
-            ) : (
-              <MetricChart data={dailyData} metric={selectedMetric} />
-            )}
-
-            {Platform.OS === 'android' ? (
-              <View style={styles.syncStatusCard}>
-                <View>
-                  <Text style={styles.syncStatusTitle}>Tracking Status</Text>
-                  <Text style={styles.syncStatusText}>
-                    {syncStatus?.trackingEnabled
-                      ? 'Tracking on'
-                      : 'Tracking off'}
-                  </Text>
-                  <Text style={styles.syncStatusMeta}>
-                    {formatBangkokTime(syncStatus?.lastWriteUtcMs)}
-                  </Text>
-                  <Text style={styles.syncStatusMeta}>
-                    Pending buckets: {syncStatus?.pendingCount ?? 0}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={[
-                    styles.syncButton,
-                    syncing && styles.syncButtonDisabled,
-                  ]}
-                  onPress={handleSync}
-                  disabled={syncing}
+            {status !== HealthStatus.OK ? (
+              <View style={isErrorStatus ? styles.alertBox : styles.infoBox}>
+                <Text
+                  style={isErrorStatus ? styles.alertText : styles.infoText}
                 >
-                  <Text style={styles.syncButtonText}>
-                    {syncing ? 'Syncing...' : 'Sync now'}
-                  </Text>
-                </TouchableOpacity>
+                  {renderStatusMessage()}
+                </Text>
               </View>
             ) : null}
 
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Quick Actions</Text>
-              <Text style={styles.sectionMeta}>Manage your data</Text>
-            </View>
-
-            <View style={styles.actionRow}>
-              <ActionButton
-                label="Profile"
-                onPress={() => navigation.navigate('Profile')}
-              />
-              <View style={styles.actionSpacer} />
-              <ActionButton
-                label="Debug"
-                onPress={() => navigation.navigate('Debug')}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.button,
-                isNavigationDisabled && styles.buttonDisabled,
-              ]}
-              onPress={() =>
-                navigation.navigate('Hourly', { initialMetric: selectedMetric })
-              }
-              disabled={isNavigationDisabled}
+            <Animated.View
+              style={{
+                opacity: contentOpacity,
+                transform: [
+                  {
+                    translateY: contentOpacity.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [8, 0],
+                    }),
+                  },
+                ],
+              }}
             >
-              <Text style={styles.buttonText}>View hourly breakdown</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </ScrollView>
+              <MetricSummaryCard
+                label={selectedMeta.label}
+                value={selectedValue}
+                unit={selectedMeta.unit}
+                iconLabel={selectedMeta.icon}
+                accentColor={tokens.colors.accent}
+              />
+
+              <SegmentedMetricTabs
+                selected={selectedMetric}
+                onSelect={setSelectedMetric}
+              />
+
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Last 7 Days</Text>
+                <Text style={styles.sectionMeta}>Daily totals</Text>
+              </View>
+
+              {dailyData.length === 0 ? (
+                <Text style={styles.noDataText}>No chart data available.</Text>
+              ) : (
+                <DailyChart
+                  data={dailyData}
+                  metric={selectedMetric}
+                  accentColor={tokens.colors.accent}
+                />
+              )}
+
+              {Platform.OS === 'android' ? (
+                <Text style={styles.syncMeta}>
+                  Last synced at {formatBangkokTime(syncStatus?.lastSyncUtcMs)}
+                </Text>
+              ) : null}
+
+              {Platform.OS === 'android' ? (
+                <View style={styles.syncStatusCard}>
+                  <View>
+                    <Text style={styles.syncStatusTitle}>Sync status</Text>
+                    <Text style={styles.syncStatusText}>
+                      {syncStateLabel()}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.syncButton,
+                      syncing && styles.syncButtonDisabled,
+                    ]}
+                    onPress={handleSync}
+                    disabled={syncing}
+                  >
+                    <Text style={styles.syncButtonText}>
+                      {syncing ? 'Syncing...' : 'Sync now'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+
+              <View style={styles.followingRow}>
+                {[
+                  { label: 'Activity', value: steps, unit: 'steps', icon: 'A' },
+                  { label: 'Body', value: distance, unit: 'm', icon: 'B' },
+                  { label: 'Heart', value: calories, unit: 'kcal', icon: 'H' },
+                ].map(card => (
+                  <View key={card.label} style={styles.followingCard}>
+                    <View style={styles.followingIcon}>
+                      <Text style={styles.followingIconText}>{card.icon}</Text>
+                    </View>
+                    <Text style={styles.followingValue}>
+                      {Math.round(card.value).toLocaleString()}
+                    </Text>
+                    <Text style={styles.followingLabel}>{card.label}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.sectionHeaderWide}>
+                <Text style={styles.sectionTitle}>All Health Data</Text>
+                <Text style={styles.sectionMeta}>Overview</Text>
+              </View>
+
+              {(
+                [
+                  'steps',
+                  'activeCaloriesKcal',
+                  'distanceMeters',
+                ] as MetricType[]
+              ).map(metricKey => {
+                const meta = METRIC_META[metricKey];
+                const series = dailyData.map(day => day[metricKey]);
+                const maxValue = Math.max(...series, 1);
+                return (
+                  <View key={metricKey} style={styles.dataRow}>
+                    <View>
+                      <Text style={styles.dataLabel}>{meta.label}</Text>
+                      <Text style={styles.dataValue}>
+                        {Math.round(
+                          metricKey === 'distanceMeters'
+                            ? distance
+                            : metricKey === 'steps'
+                            ? steps
+                            : calories,
+                        ).toLocaleString()}{' '}
+                        <Text style={styles.dataUnit}>{meta.unit}</Text>
+                      </Text>
+                    </View>
+                    <View style={styles.miniTrend}>
+                      {series.map((value, index) => (
+                        <View
+                          key={`${metricKey}-${index}`}
+                          style={[
+                            styles.miniBar,
+                            {
+                              height: 6 + (value / maxValue) * 18,
+                              opacity: index === series.length - 1 ? 1 : 0.4,
+                            },
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                );
+              })}
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  isNavigationDisabled && styles.buttonDisabled,
+                ]}
+                onPress={() =>
+                  navigation.navigate('Hourly', {
+                    initialMetric: selectedMetric,
+                  })
+                }
+                disabled={isNavigationDisabled}
+              >
+                <Text style={styles.buttonText}>View Today Hourly →</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </ScrollView>
+        </View>
       )}
     </SafeAreaView>
   );
 };
 
-const SummaryCard = ({
-  label,
-  value,
-  unit,
-  accent,
-  tint,
-}: {
-  label: string;
-  value: number;
-  unit: string;
-  accent: string;
-  tint: string;
-}) => (
-  <View style={[styles.card, { borderColor: accent, backgroundColor: tint }]}>
-    <View style={styles.cardHeader}>
-      <View style={[styles.cardDot, { backgroundColor: accent }]} />
-      <Text style={styles.cardLabel}>{label}</Text>
-    </View>
-    <Text style={styles.cardValue}>{value.toLocaleString()}</Text>
-    {unit ? <Text style={styles.cardUnit}>{unit}</Text> : null}
-  </View>
-);
-
-const ActionButton = ({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) => (
-  <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-    <Text style={styles.actionButtonText}>{label}</Text>
-  </TouchableOpacity>
-);
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F6F3EF',
+    backgroundColor: tokens.colors.background,
   },
-  content: {
-    padding: 16,
-    paddingBottom: 28,
+  screenWrap: {
+    flex: 1,
   },
-  heroSurface: {
-    backgroundColor: '#0B1C2E',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 18,
-    overflow: 'hidden',
-  },
-  heroGlow: {
+  backgroundGradient: {
     position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 260,
+    backgroundColor: tokens.colors.gradientTop,
+  },
+  backgroundGlow: {
+    position: 'absolute',
+    top: 120,
+    left: -40,
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: '#1E5FBF',
-    opacity: 0.25,
-    top: -100,
-    right: -80,
+    backgroundColor: '#F8D6C6',
+    opacity: 0.4,
   },
-  heroGlowSecondary: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: '#D6792B',
-    opacity: 0.18,
-    bottom: -90,
-    left: -60,
+  content: {
+    padding: 16,
+    paddingTop: 8,
+    paddingBottom: 28,
   },
-  heroHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  headerBlock: {
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: tokens.spacing.md,
   },
-  heroPill: {
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  heroPillText: {
-    color: '#F4F7FB',
+  todayLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: tokens.colors.textMuted,
   },
-  heroRange: {
-    color: '#B9C7DD',
-    fontSize: 12,
-  },
-  heroTitle: {
-    color: '#F8FAFC',
-    fontSize: 26,
+  headline: {
+    marginTop: 6,
+    fontSize: 22,
     fontWeight: '700',
-    letterSpacing: 0.3,
+    color: tokens.colors.textPrimary,
+    textAlign: 'center',
     fontFamily: Platform.select({
       ios: 'AvenirNext-DemiBold',
       android: 'serif',
     }),
   },
-  heroSubtitle: {
-    color: '#C3D1E6',
-    marginTop: 8,
-    fontSize: 13,
-    lineHeight: 18,
-    fontFamily: Platform.select({
-      ios: 'AvenirNext-Regular',
-      android: 'serif',
-    }),
-  },
-  summaryGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  card: {
-    flex: 1,
-    borderWidth: 1,
-    marginHorizontal: 4,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    alignItems: 'flex-start',
-    elevation: 2,
-    shadowColor: '#1B1F23',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cardDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  cardLabel: {
+  dateTextCentered: {
+    marginTop: 6,
     fontSize: 12,
-    color: '#4A5568',
-    fontWeight: '600',
-  },
-  cardValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#0F172A',
-    fontFamily: Platform.select({ ios: 'AvenirNext-Bold', android: 'serif' }),
-  },
-  cardUnit: {
-    marginTop: 4,
-    fontSize: 11,
-    color: '#667085',
+    color: tokens.colors.textMuted,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -531,10 +459,17 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     marginBottom: 8,
   },
+  sectionHeaderWide: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginTop: tokens.spacing.lg,
+    marginBottom: tokens.spacing.sm,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0B1C2E',
+    color: tokens.colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'AvenirNext-DemiBold',
       android: 'serif',
@@ -542,45 +477,43 @@ const styles = StyleSheet.create({
   },
   sectionMeta: {
     fontSize: 12,
-    color: '#6B7280',
+    color: tokens.colors.textMuted,
   },
   noDataText: {
     textAlign: 'center',
     marginVertical: 32,
-    color: '#8A94A6',
+    color: tokens.colors.textMuted,
+  },
+  syncMeta: {
+    marginTop: 8,
+    fontSize: 11,
+    color: tokens.colors.textMuted,
+    textAlign: 'right',
   },
   syncStatusCard: {
     marginTop: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: tokens.colors.card,
+    borderRadius: tokens.radius.card,
+    padding: tokens.spacing.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#1B1F23',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
   },
   syncStatusTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0B1C2E',
+    color: tokens.colors.textPrimary,
   },
   syncStatusText: {
     marginTop: 4,
     fontSize: 13,
-    color: '#1F2937',
+    color: tokens.colors.textPrimary,
     fontWeight: '600',
   },
-  syncStatusMeta: {
-    marginTop: 2,
-    fontSize: 11,
-    color: '#6B7280',
-  },
   syncButton: {
-    backgroundColor: '#1E5FBF',
+    backgroundColor: tokens.colors.accent,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 10,
@@ -589,33 +522,85 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   syncButtonText: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
   },
-  actionRow: {
+  followingRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    marginTop: tokens.spacing.lg,
+    marginBottom: tokens.spacing.lg,
   },
-  actionSpacer: {
-    width: 12,
-  },
-  actionButton: {
+  followingCard: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: tokens.colors.card,
+    borderRadius: tokens.radius.card,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+    padding: tokens.spacing.sm,
     alignItems: 'center',
-    shadowColor: '#1B1F23',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
+    marginHorizontal: 4,
   },
-  actionButtonText: {
+  followingIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 10,
+    backgroundColor: tokens.colors.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  followingIconText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: tokens.colors.accent,
+  },
+  followingValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: tokens.colors.textPrimary,
+  },
+  followingLabel: {
+    marginTop: 2,
+    fontSize: 10,
+    color: tokens.colors.textMuted,
+  },
+  dataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: tokens.colors.card,
+    borderRadius: tokens.radius.card,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+    padding: tokens.spacing.md,
+    marginBottom: tokens.spacing.sm,
+  },
+  dataLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#0B1C2E',
+    color: tokens.colors.textMuted,
+  },
+  dataValue: {
+    marginTop: 4,
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.textPrimary,
+  },
+  dataUnit: {
+    fontSize: 12,
+    color: tokens.colors.textMuted,
+    fontWeight: '500',
+  },
+  miniTrend: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  miniBar: {
+    width: 6,
+    borderRadius: 4,
+    backgroundColor: tokens.colors.accent,
   },
   alertBox: {
     backgroundColor: '#FFE5E5',
@@ -638,9 +623,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#0B1C2E',
+    backgroundColor: tokens.colors.accent,
     padding: 16,
-    borderRadius: 14,
+    borderRadius: tokens.radius.card,
     alignItems: 'center',
     marginTop: 16,
   },
@@ -648,7 +633,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 15,
     letterSpacing: 0.3,
@@ -661,7 +646,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    color: '#666',
+    color: tokens.colors.textMuted,
     fontSize: 16,
   },
 });

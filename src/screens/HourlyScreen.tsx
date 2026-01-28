@@ -8,10 +8,12 @@ import {
 } from 'react-native';
 import { HealthLayer } from '../health/HealthLayer';
 import { HealthStatus, HourlyMetrics, MetricType } from '../health/models';
-import MetricTabs from '../components/MetricTabs';
 import HourlyChart from '../components/HourlyChart';
+import MeasurementRowCard from '../components/MeasurementRowCard';
+import SegmentedMetricTabs from '../components/SegmentedMetricTabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { tokens } from '../ui/tokens';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Hourly'>;
 
@@ -78,27 +80,59 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
     status === HealthStatus.NOT_AUTHORIZED ||
     status === HealthStatus.UNKNOWN;
 
-  const renderItem = ({ item }: { item: HourlyMetrics }) => (
-    <View style={styles.row}>
-      <Text style={styles.hourText}>{`${item.hourIndex}:00`}</Text>
-      <Text style={styles.valueText}>
-        {item[selectedMetric].toLocaleString()}
-        <Text style={styles.unitText}>
-          {selectedMetric === 'steps'
-            ? ' steps'
-            : selectedMetric === 'activeCaloriesKcal'
-            ? ' kcal'
-            : ' m'}
-        </Text>
-      </Text>
-    </View>
-  );
+  const renderItem = ({ item }: { item: HourlyMetrics }) => {
+    const unit =
+      selectedMetric === 'steps'
+        ? 'steps'
+        : selectedMetric === 'activeCaloriesKcal'
+        ? 'kcal'
+        : 'm';
+    const icon =
+      selectedMetric === 'steps'
+        ? 'S'
+        : selectedMetric === 'activeCaloriesKcal'
+        ? 'C'
+        : 'D';
+    const hour = String(item.hourIndex).padStart(2, '0');
+    return (
+      <MeasurementRowCard
+        iconLabel={icon}
+        value={item[selectedMetric]}
+        unit={unit}
+        timeLabel={`${hour}:00–${hour}:59`}
+      />
+    );
+  };
 
   const listHeader = (
     <>
       <View style={styles.header}>
-        <MetricTabs selected={selectedMetric} onSelect={setSelectedMetric} />
+        <Text style={styles.title}>Today</Text>
+        <Text style={styles.subtitle}>Hourly detail</Text>
       </View>
+
+      <View style={styles.periodRow}>
+        {['Day', 'Week', 'Month', 'Year'].map((label, index) => (
+          <View
+            key={label}
+            style={[styles.periodPill, index === 0 && styles.periodPillActive]}
+          >
+            <Text
+              style={[
+                styles.periodText,
+                index === 0 && styles.periodTextActive,
+              ]}
+            >
+              {label}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <SegmentedMetricTabs
+        selected={selectedMetric}
+        onSelect={setSelectedMetric}
+      />
 
       {status !== HealthStatus.OK ? (
         <View style={isErrorStatus ? styles.alertBox : styles.infoBox}>
@@ -109,17 +143,23 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
       ) : null}
 
       <View style={styles.chartWrapper}>
-        <HourlyChart data={hourlyData} metric={selectedMetric} />
+        <HourlyChart
+          data={hourlyData}
+          metric={selectedMetric}
+          accentColor={tokens.colors.accent}
+        />
       </View>
-      <Text style={styles.listTitle}>Hourly Breakdown</Text>
+      <Text style={styles.listTitle}>Measurements</Text>
     </>
   );
 
   return (
     <View style={styles.container}>
+      <View style={styles.backgroundGradient} />
+      <View style={styles.backgroundGlow} />
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={tokens.colors.accent} />
           <Text style={styles.loadingText}>Loading hourly data...</Text>
         </View>
       ) : (
@@ -143,11 +183,68 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: tokens.colors.background,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 220,
+    backgroundColor: tokens.colors.gradientTop,
+  },
+  backgroundGlow: {
+    position: 'absolute',
+    top: 80,
+    right: -60,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: '#F9D8C8',
+    opacity: 0.35,
   },
   header: {
     paddingHorizontal: 16,
-    backgroundColor: '#fff',
+    paddingTop: 12,
+    backgroundColor: tokens.colors.background,
+  },
+  periodRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginTop: tokens.spacing.sm,
+    marginBottom: tokens.spacing.sm,
+  },
+  periodPill: {
+    flex: 1,
+    paddingVertical: 8,
+    marginHorizontal: 4,
+    borderRadius: 999,
+    backgroundColor: '#F6ECE6',
+    alignItems: 'center',
+  },
+  periodPillActive: {
+    backgroundColor: tokens.colors.card,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+  },
+  periodText: {
+    fontSize: 12,
+    color: tokens.colors.textMuted,
+  },
+  periodTextActive: {
+    color: tokens.colors.textPrimary,
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: tokens.colors.textPrimary,
+  },
+  subtitle: {
+    marginTop: 4,
+    fontSize: 12,
+    color: tokens.colors.textMuted,
   },
   center: {
     flex: 1,
@@ -160,45 +257,19 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
+    paddingTop: 8,
     paddingBottom: 32,
   },
   listTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
+    color: tokens.colors.textPrimary,
   },
   noDataText: {
     textAlign: 'center',
-    color: '#999',
+    color: tokens.colors.textMuted,
     paddingVertical: 16,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 1,
-  },
-  hourText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  valueText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
-  },
-  unitText: {
-    fontSize: 12,
-    fontWeight: 'normal',
-    color: '#999',
   },
   alertBox: {
     backgroundColor: '#FFE5E5',
@@ -224,7 +295,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    color: '#666',
+    color: tokens.colors.textMuted,
     fontSize: 16,
   },
 });

@@ -10,27 +10,28 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getPendingBuckets,
-  getSyncStatus,
-  startTracking,
-  stopTracking,
+  startHourlyHealthSync,
+  stopHourlyHealthSync,
   syncNow,
 } from '../health/android/HealthTracking';
-import type {
-  PendingBucket,
-  SyncStatus,
-} from '../health/android/HealthTracking';
+import type { PendingBucket } from '../health/android/HealthTracking';
+import { formatBangkokTime } from '../health/utils/formatTime';
+import { useSyncStatus } from '../health/android/useSyncStatus';
 
 const DebugScreen = () => {
-  const [status, setStatus] = useState<SyncStatus | null>(null);
   const [pending, setPending] = useState<PendingBucket[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const { status: syncStatus, refresh: refreshStatus } = useSyncStatus({
+    autoRefresh: false,
+  });
 
   const refreshAll = async () => {
     if (Platform.OS !== 'android') return;
     setRefreshing(true);
-    const nextStatus = await getSyncStatus();
-    const nextPending = await getPendingBuckets(24);
-    setStatus(nextStatus);
+    const [nextPending] = await Promise.all([
+      getPendingBuckets(24),
+      refreshStatus(),
+    ]);
     setPending(nextPending);
     setRefreshing(false);
   };
@@ -40,10 +41,10 @@ const DebugScreen = () => {
   }, []);
 
   const handleToggleTracking = () => {
-    if (!status?.trackingEnabled) {
-      startTracking();
+    if (!syncStatus?.trackingEnabled) {
+      startHourlyHealthSync();
     } else {
-      stopTracking();
+      stopHourlyHealthSync();
     }
     setTimeout(refreshAll, 600);
   };
@@ -51,18 +52,6 @@ const DebugScreen = () => {
   const handleSync = () => {
     syncNow();
     setTimeout(refreshAll, 600);
-  };
-
-  const formatBangkokTime = (utcMs?: number) => {
-    if (!utcMs) return 'Never synced';
-    const offsetMs = 7 * 60 * 60 * 1000;
-    const date = new Date(utcMs + offsetMs);
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const hours = String(date.getUTCHours()).padStart(2, '0');
-    const mins = String(date.getUTCMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${mins} BKK`;
   };
 
   if (Platform.OS !== 'android') {
@@ -88,13 +77,21 @@ const DebugScreen = () => {
             <View style={styles.card}>
               <Text style={styles.title}>Tracking & Sync</Text>
               <Text style={styles.metaText}>
-                Tracking: {status?.trackingEnabled ? 'On' : 'Off'}
+                Tracking: {syncStatus?.trackingEnabled ? 'On' : 'Off'}
               </Text>
               <Text style={styles.metaText}>
-                Last write: {formatBangkokTime(status?.lastWriteUtcMs)}
+                Status: {syncStatus?.status ?? 'IDLE'}
               </Text>
               <Text style={styles.metaText}>
-                Pending buckets: {status?.pendingCount ?? 0}
+                Last sync: {formatBangkokTime(syncStatus?.lastSyncUtcMs)}
+              </Text>
+              {syncStatus?.status === 'ERROR' ? (
+                <Text style={styles.errorText}>
+                  {syncStatus.lastError ?? 'Sync failed'}
+                </Text>
+              ) : null}
+              <Text style={styles.metaText}>
+                Pending buckets: {syncStatus?.pendingCount ?? 0}
               </Text>
 
               <View style={styles.buttonRow}>
@@ -109,7 +106,7 @@ const DebugScreen = () => {
                   onPress={handleToggleTracking}
                 >
                   <Text style={styles.secondaryButtonText}>
-                    {status?.trackingEnabled ? 'Stop' : 'Start'} tracking
+                    {syncStatus?.trackingEnabled ? 'Stop' : 'Start'} tracking
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -181,6 +178,11 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 12,
     color: '#64748B',
+  },
+  errorText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: '#C2410C',
   },
   buttonRow: {
     flexDirection: 'row',

@@ -41,6 +41,26 @@ object BangkokTime {
     )
   }
 
+  fun getHourlyRangesForDate(date: LocalDate): List<HourRange> {
+    val startOfDay = date.atStartOfDay().atOffset(bangkokOffset)
+    val ranges = mutableListOf<HourRange>()
+    for (hour in 0..23) {
+      val startLocal = startOfDay.plusHours(hour.toLong())
+      val endLocal = startLocal.plusHours(1).minusNanos(1)
+      val startUtc = startLocal.withOffsetSameInstant(ZoneOffset.UTC).toInstant()
+      val endUtc = endLocal.withOffsetSameInstant(ZoneOffset.UTC).toInstant()
+      ranges.add(
+        HourRange(
+          dateLocal = startLocal.toLocalDate().toString(),
+          hourLocal = startLocal.hour,
+          startTimeUtc = startUtc.toString(),
+          endTimeUtc = endUtc.toString(),
+        ),
+      )
+    }
+    return ranges
+  }
+
   data class HourRange(
     val dateLocal: String,
     val hourLocal: Int,

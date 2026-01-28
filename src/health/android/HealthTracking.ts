@@ -15,7 +15,9 @@ type PendingBucket = {
 
 type SyncStatus = {
   trackingEnabled: boolean;
-  lastWriteUtcMs: number;
+  lastSyncUtcMs: number;
+  status: 'IDLE' | 'SYNCING' | 'ERROR';
+  lastError?: string;
   pendingCount: number;
 };
 
@@ -28,6 +30,8 @@ type UserProfile = {
 type NativeHealthTracking = {
   startTracking: () => void;
   stopTracking: () => void;
+  startHourlyHealthSync: () => void;
+  stopHourlyHealthSync: () => void;
   syncNow: () => void;
   getTodayHourlyBuckets: () => Promise<HourlyMetrics[]>;
   getDailyLast7Days: () => Promise<DailyMetrics[]>;
@@ -38,6 +42,7 @@ type NativeHealthTracking = {
     strideLengthMeters: number,
   ) => void;
   getSyncStatus: () => Promise<SyncStatus>;
+  getLastSyncStatus: () => Promise<SyncStatus>;
   getPendingBuckets: (limit: number) => Promise<PendingBucket[]>;
 };
 
@@ -61,13 +66,29 @@ export const ensureActivityPermissions = async () => {
 };
 
 export const startTracking = () => {
-  if (!isAndroidNative) return;
-  HealthTracking.startTracking();
+  startHourlyHealthSync();
 };
 
 export const stopTracking = () => {
+  stopHourlyHealthSync();
+};
+
+export const startHourlyHealthSync = () => {
   if (!isAndroidNative) return;
-  HealthTracking.stopTracking();
+  if (HealthTracking.startHourlyHealthSync) {
+    HealthTracking.startHourlyHealthSync();
+  } else {
+    HealthTracking.startTracking();
+  }
+};
+
+export const stopHourlyHealthSync = () => {
+  if (!isAndroidNative) return;
+  if (HealthTracking.stopHourlyHealthSync) {
+    HealthTracking.stopHourlyHealthSync();
+  } else {
+    HealthTracking.stopTracking();
+  }
 };
 
 export const syncNow = () => {
@@ -101,6 +122,17 @@ export const getUserProfile = async (): Promise<UserProfile | null> => {
 
 export const getSyncStatus = async (): Promise<SyncStatus | null> => {
   if (!isAndroidNative) return null;
+  if (HealthTracking.getLastSyncStatus) {
+    return HealthTracking.getLastSyncStatus();
+  }
+  return HealthTracking.getSyncStatus();
+};
+
+export const getLastSyncStatus = async (): Promise<SyncStatus | null> => {
+  if (!isAndroidNative) return null;
+  if (HealthTracking.getLastSyncStatus) {
+    return HealthTracking.getLastSyncStatus();
+  }
   return HealthTracking.getSyncStatus();
 };
 

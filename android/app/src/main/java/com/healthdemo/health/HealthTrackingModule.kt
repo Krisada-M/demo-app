@@ -1,9 +1,6 @@
 package com.healthdemo.health
 
 import android.content.Context
-import android.content.Intent
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -22,21 +19,25 @@ class HealthTrackingModule(private val reactContext: ReactApplicationContext) : 
 
   @ReactMethod
   fun startTracking() {
-    val prefs = reactContext.getSharedPreferences("health_tracking", Context.MODE_PRIVATE)
-    prefs.edit().putBoolean("tracking_enabled", true).apply()
-
-    val serviceIntent = Intent(reactContext, StepCounterService::class.java)
-    reactContext.startForegroundService(serviceIntent)
-    HealthSyncScheduler.schedule(reactContext)
+    startHourlyHealthSync()
   }
 
   @ReactMethod
   fun stopTracking() {
+    stopHourlyHealthSync()
+  }
+
+  @ReactMethod
+  fun startHourlyHealthSync() {
+    val prefs = reactContext.getSharedPreferences("health_tracking", Context.MODE_PRIVATE)
+    prefs.edit().putBoolean("tracking_enabled", true).apply()
+    HealthSyncScheduler.schedule(reactContext)
+  }
+
+  @ReactMethod
+  fun stopHourlyHealthSync() {
     val prefs = reactContext.getSharedPreferences("health_tracking", Context.MODE_PRIVATE)
     prefs.edit().putBoolean("tracking_enabled", false).apply()
-
-    val serviceIntent = Intent(reactContext, StepCounterService::class.java)
-    reactContext.stopService(serviceIntent)
     HealthSyncScheduler.cancel(reactContext)
   }
 
@@ -60,16 +61,16 @@ class HealthTrackingModule(private val reactContext: ReactApplicationContext) : 
   @ReactMethod
   fun getSyncStatus(promise: Promise) {
     try {
-      val trackingPrefs = reactContext.getSharedPreferences("health_tracking", Context.MODE_PRIVATE)
-      val trackingEnabled = trackingPrefs.getBoolean("tracking_enabled", false)
-      val lastWriteMs = HealthSyncPrefs(reactContext).getLastWriteUtcMs()
-      val pendingCount = store.getPendingBuckets(500).size
+      promise.resolve(buildSyncStatus())
+    } catch (error: Exception) {
+      promise.reject("GET_SYNC_STATUS_ERROR", error)
+    }
+  }
 
-      val map = Arguments.createMap()
-      map.putBoolean("trackingEnabled", trackingEnabled)
-      map.putDouble("lastWriteUtcMs", lastWriteMs.toDouble())
-      map.putInt("pendingCount", pendingCount)
-      promise.resolve(map)
+  @ReactMethod
+  fun getLastSyncStatus(promise: Promise) {
+    try {
+      promise.resolve(buildSyncStatus())
     } catch (error: Exception) {
       promise.reject("GET_SYNC_STATUS_ERROR", error)
     }
@@ -96,6 +97,23 @@ class HealthTrackingModule(private val reactContext: ReactApplicationContext) : 
     } catch (error: Exception) {
       promise.reject("GET_PENDING_ERROR", error)
     }
+  }
+
+  private fun buildSyncStatus(): WritableMap {
+    val trackingPrefs = reactContext.getSharedPreferences("health_tracking", Context.MODE_PRIVATE)
+    val trackingEnabled = trackingPrefs.getBoolean("tracking_enabled", false)
+    val syncPrefs = HealthSyncPrefs(reactContext)
+    val pendingCount = store.getPendingBuckets(500).size
+
+    val map = Arguments.createMap()
+    map.putBoolean("trackingEnabled", trackingEnabled)
+    map.putDouble("lastSyncUtcMs", syncPrefs.getLastSyncUtcMs().toDouble())
+    map.putString("status", syncPrefs.getStatus())
+    syncPrefs.getLastErrorMessage()?.let { message ->
+      map.putString("lastError", message)
+    }
+    map.putInt("pendingCount", pendingCount)
+    return map
   }
 
   @ReactMethod

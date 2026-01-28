@@ -70,6 +70,48 @@ class HealthStore(context: Context) {
     }
   }
 
+  fun upsertBucketSnapshot(
+    dateLocal: String,
+    hourLocal: Int,
+    startTimeUtc: String,
+    endTimeUtc: String,
+    steps: Long,
+    distanceMeters: Double,
+    activeKcal: Double,
+    source: String,
+  ) {
+    val db = dbHelper.writableDatabase
+    db.beginTransaction()
+    try {
+      val existing = getBucket(dateLocal, hourLocal)
+      val version = existing?.clientRecordVersion ?: 0L
+      val values = ContentValues().apply {
+        put("date_local", dateLocal)
+        put("hour_local", hourLocal)
+        put("start_time_utc", startTimeUtc)
+        put("end_time_utc", endTimeUtc)
+        put("steps", steps)
+        put("distance_meters", distanceMeters)
+        put("active_kcal", activeKcal)
+        put("source", source)
+        put("updated_at_utc", Instant.now().toString())
+        put("hc_status", "SYNCED")
+        put("client_record_version", version)
+        put("hc_uuids", existing?.hcUuids)
+      }
+
+      db.insertWithOnConflict(
+        HealthDbHelper.TABLE_HOURLY_BUCKETS,
+        null,
+        values,
+        android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE,
+      )
+      db.setTransactionSuccessful()
+    } finally {
+      db.endTransaction()
+    }
+  }
+
   fun getBucketsForDate(dateLocal: String): List<HourlyBucket> {
     val db = dbHelper.readableDatabase
     val cursor = db.query(
@@ -115,8 +157,8 @@ class HealthStore(context: Context) {
     val cursor = db.query(
       HealthDbHelper.TABLE_HOURLY_BUCKETS,
       null,
-      "hc_status != ?",
-      arrayOf("WRITTEN"),
+      "hc_status = ?",
+      arrayOf("PENDING"),
       null,
       null,
       "updated_at_utc ASC",
