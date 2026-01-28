@@ -45,8 +45,7 @@ const MetricChart: React.FC<Props> = ({ data, metric, accentColor }) => {
           data={chartData}
           style={{
             data: {
-              fill: ({ index }) =>
-                index === lastIndex ? fillColor : fillColor,
+              fill: fillColor,
               fillOpacity: ({ index }) => (index === lastIndex ? 1 : 0.35),
             },
           }}

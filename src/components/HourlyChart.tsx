@@ -41,8 +41,7 @@ const HourlyChart: React.FC<Props> = ({ data, metric, accentColor }) => {
           data={chartData}
           style={{
             data: {
-              fill: ({ datum }) =>
-                datum.x === currentHour ? fillColor : fillColor,
+              fill: fillColor,
               fillOpacity: ({ datum }) => {
                 if (datum.y === 0) return 0.12;
                 return datum.x === currentHour ? 1 : 0.35;

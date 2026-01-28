@@ -18,6 +18,8 @@ import { tokens } from '../ui/tokens';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Hourly'>;
 
+const PERIOD_OPTIONS = ['Day', 'Week', 'Month', 'Year'] as const;
+
 const HourlyScreen: React.FC<Props> = ({ route }) => {
   const { initialMetric } = route.params;
   const [hourlyData, setHourlyData] = useState<HourlyMetrics[]>([]);
@@ -113,7 +115,7 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
       </View>
 
       <View style={styles.periodRow}>
-        {['Day', 'Week', 'Month', 'Year'].map((label, index) => (
+        {PERIOD_OPTIONS.map((label, index) => (
           <View
             key={label}
             style={[styles.periodPill, index === 0 && styles.periodPillActive]}

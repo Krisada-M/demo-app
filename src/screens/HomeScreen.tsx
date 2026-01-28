@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   View,
@@ -61,16 +61,6 @@ const METRIC_META: Record<
     icon: 'D',
   },
 };
-
-const parseLocalDate = (value: string) => {
-  const parts = value.split('-').map(Number);
-  if (parts.length !== 3) return new Date();
-  const [year, month, day] = parts;
-  return new Date(year, month - 1, day);
-};
-
-const formatShortDate = (date: Date) =>
-  `${MONTHS[date.getMonth()]} ${date.getDate()}`;
 
 const formatFullDate = (date: Date) =>
   `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
@@ -160,19 +150,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const isNavigationDisabled =
     status === HealthStatus.NOT_SUPPORTED ||
     status === HealthStatus.NOT_AUTHORIZED;
-
-  const rangeLabel = useMemo(() => {
-    if (dailyData.length >= 2) {
-      const startDate = parseLocalDate(dailyData[0].date);
-      const endDate = parseLocalDate(dailyData[dailyData.length - 1].date);
-      return `${formatShortDate(startDate)} - ${formatShortDate(endDate)}`;
-    }
-
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - 6);
-    return `${formatShortDate(startDate)} - ${formatShortDate(endDate)}`;
-  }, [dailyData]);
 
   const selectedMeta = METRIC_META[selectedMetric];
   const selectedValue =
