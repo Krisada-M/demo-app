@@ -119,7 +119,7 @@ const getDailySeries = async (
     return ranges.map(({ date }) => byDate.get(formatDate(date)) ?? 0);
   } catch (error) {
     console.warn(
-      'iOS daily statistics collection failed, falling back to samples.',
+      'iOS daily statistics collection failed, falling back.',
       error,
     );
   }
@@ -157,7 +157,7 @@ const getHourlySeries = async (
     return ranges.map(({ hourIndex }) => byHour.get(hourIndex) ?? 0);
   } catch (error) {
     console.warn(
-      'iOS hourly statistics collection failed, falling back to samples.',
+      'iOS hourly statistics collection failed, falling back.',
       error,
     );
   }

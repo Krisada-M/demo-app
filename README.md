@@ -7,19 +7,19 @@ Integration with HealthKit (iOS) and Health Connect (Android).
 ## Setup Instructions
 
 ### iOS
+
 1. Open `ios/HealthDemo.xcworkspace` in Xcode.
 2. Go to **Signing & Capabilities**.
 3. Click **+ Capability** and add **HealthKit**.
-4. Ensure `Info.plist` has the following entries:
+4. Ensure `Info.plist` has the following entry:
    ```xml
    <key>NSHealthShareUsageDescription</key>
    <string>We need to read your health data to show your daily activity.</string>
-   <key>NSHealthUpdateUsageDescription</key>
-   <string>We need to store health data to provide accurate tracking.</string>
    ```
 5. Run `pod install` in the `ios` directory.
 
 ### Android
+
 1. `AndroidManifest.xml` has been updated with:
    - `android.permission.health.READ_STEPS`
    - `android.permission.health.READ_ACTIVE_CALORIES_BURNED`
@@ -28,12 +28,14 @@ Integration with HealthKit (iOS) and Health Connect (Android).
 2. Install the **Health Connect** app from the Play Store.
 
 ## Technical Details
-- **iOS Library**: `@kingstinct/react-native-healthkit`
+
+- **iOS Library**: `@kingstinct/react-native-healthkit` (read-only)
 - **Android Library**: `react-native-health-connect`
 - **Charts**: `victory-native`
 - **Navigation**: `@react-navigation/native`
 
 ## Unified API
+
 All health logic is centralized in `src/health/HealthLayer.ts`. UI components interact only with this layer.
 
 # Getting Started
