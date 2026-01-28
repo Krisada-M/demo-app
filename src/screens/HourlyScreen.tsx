@@ -107,6 +107,14 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
     );
   };
 
+  const isEstimated = hourlyData.some(hour =>
+    selectedMetric === 'steps'
+      ? hour.sources.steps === 'estimated'
+      : selectedMetric === 'activeCaloriesKcal'
+      ? hour.sources.activeCalories === 'estimated'
+      : hour.sources.distance === 'estimated',
+  );
+
   const listHeader = (
     <>
       <View style={styles.header}>
@@ -152,6 +160,11 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
           accentColor={tokens.colors.accent}
         />
       </View>
+      {isEstimated ? (
+        <Text style={styles.estimatedNote}>
+          Estimated values are approximate.
+        </Text>
+      ) : null}
       <Text style={styles.listTitle}>Measurements</Text>
     </>
   );
@@ -265,9 +278,15 @@ const styles = StyleSheet.create({
   },
   listTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
     marginBottom: 12,
     color: tokens.colors.textPrimary,
+  },
+  estimatedNote: {
+    marginTop: 4,
+    fontSize: 12,
+    color: tokens.colors.textMuted,
+    textAlign: 'center',
   },
   noDataText: {
     textAlign: 'center',

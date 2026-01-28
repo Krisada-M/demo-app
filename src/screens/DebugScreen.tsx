@@ -83,7 +83,7 @@ const DebugScreen = () => {
                 Status: {syncStatus?.status ?? 'IDLE'}
               </Text>
               <Text style={styles.metaText}>
-                Last sync: {formatBangkokTime(syncStatus?.lastSyncUtcMs)}
+                Last sync: {formatBangkokTime(syncStatus?.lastWriteUtcMs)}
               </Text>
               {syncStatus?.status === 'ERROR' ? (
                 <Text style={styles.errorText}>

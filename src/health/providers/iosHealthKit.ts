@@ -2,7 +2,12 @@ import HealthKit, {
   QuantityTypeIdentifier,
   StatisticsOptions,
 } from '@kingstinct/react-native-healthkit';
-import { DailyMetrics, HealthStatus, HourlyMetrics } from '../models';
+import {
+  DailyMetrics,
+  HealthStatus,
+  HourlyMetrics,
+  createStoreSources,
+} from '../models';
 import {
   createEmptyDailySeries,
   createEmptyHourlySeries,
@@ -59,6 +64,7 @@ export const getDailyLast7Days = async (): Promise<DailyMetrics[]> => {
       steps: Math.round(steps[index] ?? 0),
       activeCaloriesKcal: Math.round(calories[index] ?? 0),
       distanceMeters: Math.round(distance[index] ?? 0),
+      sources: createStoreSources(),
     }));
   } catch (error) {
     console.error('iOS getDailyLast7Days error:', error);
@@ -82,6 +88,7 @@ export const getTodayHourly = async (): Promise<HourlyMetrics[]> => {
       steps: Math.round(steps[index] ?? 0),
       activeCaloriesKcal: Math.round(calories[index] ?? 0),
       distanceMeters: Math.round(distance[index] ?? 0),
+      sources: createStoreSources(),
     }));
   } catch (error) {
     console.error('iOS getTodayHourly error:', error);

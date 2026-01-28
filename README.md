@@ -8,7 +8,6 @@ Integration with HealthKit (iOS) and Health Connect (Android).
 
 ### iOS
 
-
 1. Open `ios/HealthDemo.xcworkspace` in Xcode.
 2. Go to **Signing & Capabilities**.
 3. Click **+ Capability** and add **HealthKit**.
@@ -22,7 +21,6 @@ Integration with HealthKit (iOS) and Health Connect (Android).
 Note: iOS is using @kingstinct only (no custom Swift background tracking). Background sync is not available in this mode.
 
 ### Android
-
 
 1. `AndroidManifest.xml` has been updated with:
    - `android.permission.health.READ_STEPS`
@@ -44,8 +42,27 @@ Note: iOS is using @kingstinct only (no custom Swift background tracking). Backg
 
 ## Unified API
 
-
 All health logic is centralized in `src/health/HealthLayer.ts`. UI components interact only with this layer.
+
+## Fallback Estimation
+
+- Store-first: read Steps, Active Calories, Distance from Health Connect / HealthKit.
+- If Distance is missing across the range, estimate from steps using stride length.
+- If Active Calories is missing across the range, estimate from distance and weight.
+
+Set user profile (optional) to improve estimates:
+
+```ts
+import { HealthLayer } from './src/health/HealthLayer';
+
+HealthLayer.setUserProfile({
+  heightCm: 175,
+  weightKg: 70,
+  sex: 'male',
+  // Optional override:
+  // strideLengthMeters: 0.78,
+});
+```
 
 # Getting Started
 

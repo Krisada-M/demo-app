@@ -1,4 +1,4 @@
-import { DailyMetrics, HourlyMetrics } from '../models';
+import { DailyMetrics, HourlyMetrics, createStoreSources } from '../models';
 
 const pad2 = (value: number) => String(value).padStart(2, '0');
 const pad3 = (value: number) => String(value).padStart(3, '0');
@@ -77,6 +77,7 @@ export const createEmptyDailyMetrics = (date: Date): DailyMetrics => ({
   steps: 0,
   activeCaloriesKcal: 0,
   distanceMeters: 0,
+  sources: createStoreSources(),
 });
 
 export const createEmptyHourlyMetrics = (hourIndex: number): HourlyMetrics => ({
@@ -84,6 +85,7 @@ export const createEmptyHourlyMetrics = (hourIndex: number): HourlyMetrics => ({
   steps: 0,
   activeCaloriesKcal: 0,
   distanceMeters: 0,
+  sources: createStoreSources(),
 });
 
 export const createEmptyDailySeries = (): DailyMetrics[] =>

@@ -9,11 +9,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  getUserProfile,
-  setUserProfile,
-} from '../health/android/HealthTracking';
-import type { UserProfile } from '../health/android/HealthTracking';
+import { HealthLayer } from '../health/HealthLayer';
+import type { UserProfile } from '../health/userProfile';
 
 const ProfileScreen = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -23,13 +20,12 @@ const ProfileScreen = () => {
   const [statusText, setStatusText] = useState('');
 
   const loadProfile = async () => {
-    if (Platform.OS !== 'android') return;
-    const data = await getUserProfile();
-    if (!data) return;
+    const data = HealthLayer.getUserProfile();
     setProfile(data);
-    setWeightKg(String(data.weightKg));
+    if (data.weightKg) setWeightKg(String(data.weightKg));
     if (data.heightCm) setHeightCm(String(data.heightCm));
-    setStrideMeters(String(data.strideLengthMeters));
+    if (data.strideLengthMeters)
+      setStrideMeters(String(data.strideLengthMeters));
   };
 
   useEffect(() => {
@@ -42,18 +38,25 @@ const ProfileScreen = () => {
   };
 
   const handleSave = () => {
-    if (Platform.OS !== 'android') return;
     const weight = parseNumber(weightKg);
     const height = parseNumber(heightCm);
     const stride = parseNumber(strideMeters);
-    setUserProfile(weight, height, stride);
+    HealthLayer.setUserProfile({
+      weightKg: weight || undefined,
+      heightCm: height || undefined,
+      strideLengthMeters: stride || undefined,
+    });
     setStatusText('Profile saved. Estimates updated.');
   };
 
   const handleReset = () => {
-    if (Platform.OS !== 'android') return;
-    setUserProfile(0, 0, 0);
-    setStatusText('Using defaults (70kg, stride from height or 0.7m).');
+    HealthLayer.setUserProfile({
+      weightKg: undefined,
+      heightCm: undefined,
+      strideLengthMeters: undefined,
+      sex: undefined,
+    });
+    setStatusText('Using defaults (60kg, stride from height or 0.75m).');
     loadProfile();
   };
 
@@ -62,7 +65,7 @@ const ProfileScreen = () => {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.center}>
           <Text style={styles.messageText}>
-            Profile settings are Android-only.
+            Profile settings are used for fallback estimates only.
           </Text>
         </View>
       </SafeAreaView>

@@ -7,6 +7,8 @@ import {
   createEmptyDailySeries,
   createEmptyHourlySeries,
 } from './utils/timeBuckets';
+import { applyDailyFallbacks, applyHourlyFallbacks } from './utils/fallbacks';
+import { getUserProfile, setUserProfile } from './userProfile';
 
 const fallbackProvider: HealthProvider = {
   ensurePermissions: async () => HealthStatus.NOT_SUPPORTED,
@@ -24,7 +26,12 @@ const provider: HealthProvider =
 export const HealthLayer = {
   ensurePermissions: async (): Promise<HealthStatus> => {
     try {
-      return await provider.ensurePermissions();
+      const status = await provider.ensurePermissions();
+      console.log('[HealthLayer] permissions', {
+        platform: Platform.OS,
+        status,
+      });
+      return status;
     } catch (error) {
       console.error('HealthLayer ensurePermissions error:', error);
       return HealthStatus.UNKNOWN;
@@ -33,7 +40,22 @@ export const HealthLayer = {
 
   getDailyLast7Days: async (): Promise<DailyMetrics[]> => {
     try {
-      return await provider.getDailyLast7Days();
+      const storeData = await provider.getDailyLast7Days();
+      const { data, stats } = applyDailyFallbacks(storeData);
+      if (stats.missingDistance || stats.missingCalories) {
+        console.log('[HealthLayer] daily missing data', {
+          missingDistance: stats.missingDistance,
+          missingCalories: stats.missingCalories,
+        });
+      }
+      if (stats.distanceEstimated || stats.caloriesEstimated) {
+        console.log('[HealthLayer] daily fallback usage', {
+          distanceEstimated: stats.distanceEstimated,
+          caloriesEstimated: stats.caloriesEstimated,
+          caloriesClamped: stats.caloriesClamped,
+        });
+      }
+      return data;
     } catch (error) {
       console.error('HealthLayer getDailyLast7Days error:', error);
       return createEmptyDailySeries();
@@ -42,10 +64,27 @@ export const HealthLayer = {
 
   getTodayHourly: async (): Promise<HourlyMetrics[]> => {
     try {
-      return await provider.getTodayHourly();
+      const storeData = await provider.getTodayHourly();
+      const { data, stats } = applyHourlyFallbacks(storeData);
+      if (stats.missingDistance || stats.missingCalories) {
+        console.log('[HealthLayer] hourly missing data', {
+          missingDistance: stats.missingDistance,
+          missingCalories: stats.missingCalories,
+        });
+      }
+      if (stats.distanceEstimated || stats.caloriesEstimated) {
+        console.log('[HealthLayer] hourly fallback usage', {
+          distanceEstimated: stats.distanceEstimated,
+          caloriesEstimated: stats.caloriesEstimated,
+          caloriesClamped: stats.caloriesClamped,
+        });
+      }
+      return data;
     } catch (error) {
       console.error('HealthLayer getTodayHourly error:', error);
       return createEmptyHourlySeries();
     }
   },
+  setUserProfile,
+  getUserProfile,
 };

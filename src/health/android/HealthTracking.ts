@@ -29,8 +29,8 @@ type NativeHealthTracking = {
   startTracking: () => void;
   stopTracking: () => void;
   syncNow: () => void;
-  getTodayHourlyBuckets: () => Promise<HourlyMetrics[]>;
-  getDailyLast7Days: () => Promise<DailyMetrics[]>;
+  getTodayHourlyBuckets: () => Promise<NativeHourlyMetrics[]>;
+  getDailyLast7Days: () => Promise<NativeDailyMetrics[]>;
   getUserProfile: () => Promise<UserProfile>;
   setUserProfile: (
     weightKg: number,
@@ -40,6 +40,9 @@ type NativeHealthTracking = {
   getSyncStatus: () => Promise<SyncStatus>;
   getPendingBuckets: (limit: number) => Promise<PendingBucket[]>;
 };
+
+type NativeDailyMetrics = Omit<DailyMetrics, 'sources'>;
+type NativeHourlyMetrics = Omit<HourlyMetrics, 'sources'>;
 
 const HealthTracking = NativeModules.HealthTracking as
   | NativeHealthTracking
@@ -75,12 +78,14 @@ export const syncNow = () => {
   HealthTracking.syncNow();
 };
 
-export const getTodayHourlyBuckets = async (): Promise<HourlyMetrics[]> => {
+export const getTodayHourlyBuckets = async (): Promise<
+  NativeHourlyMetrics[]
+> => {
   if (!isAndroidNative) return [];
   return HealthTracking.getTodayHourlyBuckets();
 };
 
-export const getDailyLast7Days = async (): Promise<DailyMetrics[]> => {
+export const getDailyLast7Days = async (): Promise<NativeDailyMetrics[]> => {
   if (!isAndroidNative) return [];
   return HealthTracking.getDailyLast7Days();
 };

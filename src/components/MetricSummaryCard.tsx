@@ -9,6 +9,7 @@ type Props = {
   accentColor?: string;
   subtitle?: string;
   iconLabel?: string;
+  badgeText?: string;
 };
 
 const MetricSummaryCard: React.FC<Props> = ({
@@ -18,6 +19,7 @@ const MetricSummaryCard: React.FC<Props> = ({
   accentColor = tokens.colors.accent,
   subtitle = 'Today',
   iconLabel,
+  badgeText,
 }) => {
   return (
     <View style={styles.card}>
@@ -32,6 +34,13 @@ const MetricSummaryCard: React.FC<Props> = ({
           <Text style={styles.subtitle}>{subtitle}</Text>
           <Text style={styles.label}>{label}</Text>
         </View>
+        {badgeText ? (
+          <View style={[styles.badge, { borderColor: accentColor }]}>
+            <Text style={[styles.badgeText, { color: accentColor }]}>
+              {badgeText}
+            </Text>
+          </View>
+        ) : null}
       </View>
       <View style={styles.valueRow}>
         <Text style={styles.value}>{value.toLocaleString()}</Text>
@@ -58,6 +67,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   iconWrap: {
     width: 48,
@@ -82,6 +92,18 @@ const styles = StyleSheet.create({
   },
   textCol: {
     marginLeft: tokens.spacing.sm,
+    flex: 1,
+  },
+  badge: {
+    borderRadius: tokens.radius.pill,
+    borderWidth: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    backgroundColor: tokens.colors.accentSoft,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   subtitle: {
     fontSize: 12,

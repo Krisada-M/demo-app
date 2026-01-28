@@ -6,11 +6,20 @@ export enum HealthStatus {
   UNKNOWN = 'UNKNOWN',
 }
 
+export type MetricSource = 'store' | 'estimated';
+
+export type MetricSources = {
+  steps: MetricSource;
+  activeCalories: MetricSource;
+  distance: MetricSource;
+};
+
 export type DailyMetrics = {
   date: string; // YYYY-MM-DD local
   steps: number;
   activeCaloriesKcal: number;
   distanceMeters: number;
+  sources: MetricSources;
 };
 
 export type HourlyMetrics = {
@@ -18,6 +27,13 @@ export type HourlyMetrics = {
   steps: number;
   activeCaloriesKcal: number;
   distanceMeters: number;
+  sources: MetricSources;
 };
 
 export type MetricType = 'steps' | 'activeCaloriesKcal' | 'distanceMeters';
+
+export const createStoreSources = (): MetricSources => ({
+  steps: 'store',
+  activeCalories: 'store',
+  distance: 'store',
+});
