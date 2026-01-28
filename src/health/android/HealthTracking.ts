@@ -1,5 +1,4 @@
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
-import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import type { Permission } from 'react-native';
 import type { DailyMetrics, HourlyMetrics } from '../models';
 

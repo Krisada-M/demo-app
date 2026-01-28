@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-import { Platform } from 'react-native';
 import * as iosProvider from './providers/iosHealthKit';
 import * as androidProvider from './providers/androidHealthConnect';
 import { DailyMetrics, HealthStatus, HourlyMetrics } from './models';
