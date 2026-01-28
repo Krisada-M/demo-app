@@ -26,6 +26,9 @@ importers:
       react-native:
         specifier: 0.83.1
         version: 0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.10)(react@19.2.0)
+      react-native-background-fetch:
+        specifier: ^4.1.2
+        version: 4.3.0
       react-native-health-connect:
         specifier: ^3.5.0
         version: 3.5.0(@expo/config-plugins@54.0.4)(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.10)(react@19.2.0))(react@19.2.0)
@@ -3215,6 +3218,9 @@ packages:
 
   react-is@19.2.4:
     resolution: {integrity: sha512-W+EWGn2v0ApPKgKKCy/7s7WHXkboGcsrXE+2joLyVxkbyVQfO3MUEaUQDHoSmb8TFFrSKYa9mw64WZHNHSDzYA==}
+
+  react-native-background-fetch@4.3.0:
+    resolution: {integrity: sha512-ZeHI51pBeFEHGv+MTm+Ui8o75SvCLx3G6J4WVPH1LwAbS8TzWW1PBqa/3znHp2Ek0/yb2dYeKxE9X9rP7oiykA==}
 
   react-native-health-connect@3.5.0:
     resolution: {integrity: sha512-lIfiRps+jjDs83SApQ3AzBzU2cITwn8nPRl3v+52imWJPVw7qltAXkduioOfqFqOQJuEOwd1Wei3qtMTYbTaag==}
@@ -8135,6 +8141,8 @@ snapshots:
   react-is@18.3.1: {}
 
   react-is@19.2.4: {}
+
+  react-native-background-fetch@4.3.0: {}
 
   react-native-health-connect@3.5.0(@expo/config-plugins@54.0.4)(react-native@0.83.1(@babel/core@7.28.6)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.28.6))(@types/react@19.2.10)(react@19.2.0))(react@19.2.0):
     dependencies:
