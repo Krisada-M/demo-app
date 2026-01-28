@@ -122,10 +122,12 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, [contentOpacity, loading]);
 
-  const latest = dailyData[dailyData.length - 1];
-  const steps = latest?.steps ?? 0;
-  const calories = latest?.activeCaloriesKcal ?? 0;
-  const distance = latest?.distanceMeters ?? 0;
+  // Find today's data from the 7-day array to match hourly page
+  const today = new Date().toISOString().split('T')[0];
+  const todayData = dailyData.find(day => day.date === today);
+  const steps = todayData?.steps ?? 0;
+  const calories = todayData?.activeCaloriesKcal ?? 0;
+  const distance = todayData?.distanceMeters ?? 0;
 
   const renderStatusMessage = () => {
     if (status === HealthStatus.NOT_SUPPORTED) {
@@ -153,7 +155,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   const selectedMeta = METRIC_META[selectedMetric];
   const selectedSource =
-    latest?.sources?.[
+    todayData?.sources?.[
       selectedMetric === 'steps'
         ? 'steps'
         : selectedMetric === 'activeCaloriesKcal'

@@ -1,4 +1,5 @@
 import { DailyMetrics, HourlyMetrics, createStoreSources } from '../models';
+import dayjs from 'dayjs';
 
 const pad2 = (value: number) => String(value).padStart(2, '0');
 const pad3 = (value: number) => String(value).padStart(3, '0');
@@ -112,4 +113,24 @@ export const getTodayRange = () => {
     start: getStartOfDay(date),
     end: getEndOfDay(date),
   };
+};
+
+/**
+ * Returns a date string in YYYY-MM-DD for the current Asia/Bangkok day.
+ */
+export const todayBangkokDate = (): string => {
+  return dayjs
+    .utc()
+    .utcOffset(7 * 60)
+    .format('YYYY-MM-DD');
+};
+
+/**
+ * Formats an ISO timestamp to a readable Bangkok local time.
+ */
+export const formatBangkokTime = (utcMs?: number): string => {
+  if (!utcMs) return 'Never synced';
+  const local = dayjs.utc(utcMs).utcOffset(7 * 60);
+  const formatted = local.format('D MMM, YYYY, h:mm a');
+  return `${formatted} BKK`;
 };
