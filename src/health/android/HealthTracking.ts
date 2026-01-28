@@ -1,4 +1,5 @@
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import type { Permission } from 'react-native';
 import type { DailyMetrics, HourlyMetrics } from '../models';
 
@@ -15,9 +16,7 @@ type PendingBucket = {
 
 type SyncStatus = {
   trackingEnabled: boolean;
-  lastSyncUtcMs: number;
-  status: 'IDLE' | 'SYNCING' | 'ERROR';
-  lastError?: string;
+  lastWriteUtcMs: number;
   pendingCount: number;
 };
 
@@ -30,8 +29,6 @@ type UserProfile = {
 type NativeHealthTracking = {
   startTracking: () => void;
   stopTracking: () => void;
-  startHourlyHealthSync: () => void;
-  stopHourlyHealthSync: () => void;
   syncNow: () => void;
   getTodayHourlyBuckets: () => Promise<HourlyMetrics[]>;
   getDailyLast7Days: () => Promise<DailyMetrics[]>;
@@ -42,7 +39,6 @@ type NativeHealthTracking = {
     strideLengthMeters: number,
   ) => void;
   getSyncStatus: () => Promise<SyncStatus>;
-  getLastSyncStatus: () => Promise<SyncStatus>;
   getPendingBuckets: (limit: number) => Promise<PendingBucket[]>;
 };
 
@@ -66,29 +62,13 @@ export const ensureActivityPermissions = async () => {
 };
 
 export const startTracking = () => {
-  startHourlyHealthSync();
+  if (!isAndroidNative) return;
+  HealthTracking.startTracking();
 };
 
 export const stopTracking = () => {
-  stopHourlyHealthSync();
-};
-
-export const startHourlyHealthSync = () => {
   if (!isAndroidNative) return;
-  if (HealthTracking.startHourlyHealthSync) {
-    HealthTracking.startHourlyHealthSync();
-  } else {
-    HealthTracking.startTracking();
-  }
-};
-
-export const stopHourlyHealthSync = () => {
-  if (!isAndroidNative) return;
-  if (HealthTracking.stopHourlyHealthSync) {
-    HealthTracking.stopHourlyHealthSync();
-  } else {
-    HealthTracking.stopTracking();
-  }
+  HealthTracking.stopTracking();
 };
 
 export const syncNow = () => {
@@ -122,17 +102,6 @@ export const getUserProfile = async (): Promise<UserProfile | null> => {
 
 export const getSyncStatus = async (): Promise<SyncStatus | null> => {
   if (!isAndroidNative) return null;
-  if (HealthTracking.getLastSyncStatus) {
-    return HealthTracking.getLastSyncStatus();
-  }
-  return HealthTracking.getSyncStatus();
-};
-
-export const getLastSyncStatus = async (): Promise<SyncStatus | null> => {
-  if (!isAndroidNative) return null;
-  if (HealthTracking.getLastSyncStatus) {
-    return HealthTracking.getLastSyncStatus();
-  }
   return HealthTracking.getSyncStatus();
 };
 

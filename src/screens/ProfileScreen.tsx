@@ -75,8 +75,8 @@ const ProfileScreen = () => {
         <View style={styles.card}>
           <Text style={styles.title}>Profile & Estimates</Text>
           <Text style={styles.subtitle}>
-            Steps drive distance and calories. Set your profile to improve
-            accuracy.
+            Weight affects calories. Stride length affects distance. Set your
+            profile to improve estimates.
           </Text>
 
           <View style={styles.fieldGroup}>

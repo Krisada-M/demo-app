@@ -14,7 +14,7 @@ import {
   ensureActivityPermissions,
   getDailyLast7Days as getDailyLast7DaysNative,
   getTodayHourlyBuckets as getTodayHourlyBucketsNative,
-  startHourlyHealthSync,
+  startTracking,
   syncNow,
 } from '../android/HealthTracking';
 
@@ -22,6 +22,9 @@ const PERMISSIONS: Permission[] = [
   { accessType: 'read', recordType: 'Steps' },
   { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
   { accessType: 'read', recordType: 'Distance' },
+  { accessType: 'write', recordType: 'Steps' },
+  { accessType: 'write', recordType: 'ActiveCaloriesBurned' },
+  { accessType: 'write', recordType: 'Distance' },
 ];
 
 export const ensurePermissions = async (): Promise<HealthStatus> => {
@@ -48,7 +51,7 @@ export const ensurePermissions = async (): Promise<HealthStatus> => {
     const activityGranted = await ensureActivityPermissions();
     if (!activityGranted) return HealthStatus.NOT_AUTHORIZED;
 
-    startHourlyHealthSync();
+    startTracking();
     syncNow();
 
     return HealthStatus.OK;
