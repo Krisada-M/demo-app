@@ -325,35 +325,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 </View>
               ) : null}
 
-              {Platform.OS === 'android' ? (
-                <View style={styles.quickActionsSection}>
-                  <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Quick Actions</Text>
-                    <Text style={styles.sectionMeta}>Adjust your data</Text>
-                  </View>
-                  <View style={styles.quickActionsRow}>
-                    <TouchableOpacity
-                      style={styles.quickActionCard}
-                      onPress={() => navigation.navigate('Profile')}
-                    >
-                      <Text style={styles.quickActionTitle}>Profile</Text>
-                      <Text style={styles.quickActionText}>
-                        Weight & stride length
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.quickActionCard}
-                      onPress={() => navigation.navigate('Debug')}
-                    >
-                      <Text style={styles.quickActionTitle}>Debug</Text>
-                      <Text style={styles.quickActionText}>
-                        Sync status & buckets
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : null}
-
               <View style={styles.followingRow}>
                 {[
                   { label: 'Activity', value: steps, unit: 'steps', icon: 'A' },
@@ -571,33 +542,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
-  },
-  quickActionsSection: {
-    marginTop: tokens.spacing.lg,
-  },
-  quickActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: tokens.spacing.sm,
-  },
-  quickActionCard: {
-    flex: 1,
-    backgroundColor: tokens.colors.card,
-    borderRadius: tokens.radius.card,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    padding: tokens.spacing.md,
-    marginHorizontal: 4,
-  },
-  quickActionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: tokens.colors.textPrimary,
-  },
-  quickActionText: {
-    marginTop: 6,
-    fontSize: 12,
-    color: tokens.colors.textMuted,
   },
   quickActionsSection: {
     marginTop: tokens.spacing.lg,

@@ -14,6 +14,7 @@ type PendingBucket = {
 };
 
 type SyncStatus = {
+  status: string;
   trackingEnabled: boolean;
   lastWriteUtcMs: number;
   pendingCount: number;

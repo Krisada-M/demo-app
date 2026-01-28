@@ -140,7 +140,11 @@ const ProfileScreen = () => {
               Weight: {profile.weightKg} kg
             </Text>
             <Text style={styles.summaryText}>
-              Stride: {profile.strideLengthMeters.toFixed(2)} m
+              Stride:{' '}
+              {profile.strideLengthMeters
+                ? profile.strideLengthMeters.toFixed(2)
+                : '0.75'}{' '}
+              m
             </Text>
           </View>
         ) : null}
