@@ -85,8 +85,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   syncButtonText: {
-    color: '#FFF',
     ...tokens.typography.body,
+    color: '#FFF',
     fontSize: 14,
     fontWeight: '700',
   },
