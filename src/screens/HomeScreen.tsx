@@ -126,24 +126,30 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   // Find today's data from the 7-day array to match hourly page
   const today = formatDate(new Date());
   const todayData = dailyData.find(day => day.date === today);
-  const steps = todayData?.steps ?? 0;
-  const calories = todayData?.activeCaloriesKcal ?? 0;
-  const distance = todayData?.distanceMeters ?? 0;
+  const steps = Math.round(todayData?.steps ?? 0);
+  const calories = Math.round(todayData?.activeCaloriesKcal ?? 0);
+  const distance = Math.round(todayData?.distanceMeters ?? 0);
 
-  // Calculate averages for the last 7 days
+  // Calculate averages for the last 7 days (rounded for UI)
   const averageSteps =
     dailyData.length > 0
-      ? dailyData.reduce((sum, d) => sum + d.steps, 0) / dailyData.length
+      ? Math.round(
+          dailyData.reduce((sum, d) => sum + d.steps, 0) / dailyData.length,
+        )
       : 0;
   const averageCalories =
     dailyData.length > 0
-      ? dailyData.reduce((sum, d) => sum + d.activeCaloriesKcal, 0) /
-        dailyData.length
+      ? Math.round(
+          dailyData.reduce((sum, d) => sum + d.activeCaloriesKcal, 0) /
+            dailyData.length,
+        )
       : 0;
   const averageDistance =
     dailyData.length > 0
-      ? dailyData.reduce((sum, d) => sum + d.distanceMeters, 0) /
-        dailyData.length
+      ? Math.round(
+          dailyData.reduce((sum, d) => sum + d.distanceMeters, 0) /
+            dailyData.length,
+        )
       : 0;
 
   const renderStatusMessage = () => {
@@ -364,7 +370,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
               <View style={styles.sectionHeaderWide}>
                 <Text style={styles.sectionTitle}>All Health Data</Text>
-                <Text style={styles.sectionMeta}>7-day avg</Text>
+                <Text style={styles.sectionMeta}>Today</Text>
               </View>
 
               {(
@@ -382,14 +388,22 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                     <View>
                       <Text style={styles.dataLabel}>{meta.label}</Text>
                       <Text style={styles.dataValue}>
-                        {Math.round(
-                          metricKey === 'distanceMeters'
-                            ? averageDistance
-                            : metricKey === 'steps'
-                            ? averageSteps
-                            : averageCalories,
+                        {(metricKey === 'distanceMeters'
+                          ? distance
+                          : metricKey === 'steps'
+                          ? steps
+                          : calories
                         ).toLocaleString()}{' '}
                         <Text style={styles.dataUnit}>{meta.unit}</Text>
+                      </Text>
+                      <Text style={styles.dataAvg}>
+                        7d avg:{' '}
+                        {(metricKey === 'distanceMeters'
+                          ? averageDistance
+                          : metricKey === 'steps'
+                          ? averageSteps
+                          : averageCalories
+                        ).toLocaleString()}
                       </Text>
                     </View>
                     <View style={styles.miniTrend}>
@@ -664,6 +678,12 @@ const styles = StyleSheet.create({
   },
   dataUnit: {
     fontSize: 12,
+    color: tokens.colors.textMuted,
+    fontWeight: '500',
+  },
+  dataAvg: {
+    marginTop: 2,
+    fontSize: 11,
     color: tokens.colors.textMuted,
     fontWeight: '500',
   },

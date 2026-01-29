@@ -18,6 +18,7 @@ type SyncStatus = {
   trackingEnabled: boolean;
   lastWriteUtcMs: number;
   pendingCount: number;
+  lastError?: string;
 };
 
 type UserProfile = {
@@ -64,15 +65,15 @@ export const ensureActivityPermissions = async () => {
   return permissions.every(permission => results[permission] === 'granted');
 };
 
-export const startTracking = () => {
+export function startHourlyHealthSync() {
   if (!isAndroidNative) return;
   HealthTracking.startTracking();
-};
+}
 
-export const stopTracking = () => {
+export function stopHourlyHealthSync() {
   if (!isAndroidNative) return;
   HealthTracking.stopTracking();
-};
+}
 
 export const syncNow = () => {
   if (!isAndroidNative) return;

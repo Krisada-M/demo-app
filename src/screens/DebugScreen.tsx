@@ -18,6 +18,7 @@ import type { PendingBucket } from '../health/android/HealthTracking';
 import { formatBangkokTime } from '../health/utils/formatTime';
 import { useSyncStatus } from '../health/android/useSyncStatus';
 
+// Debug screen for tracking and sync status
 const DebugScreen = () => {
   const [pending, setPending] = useState<PendingBucket[]>([]);
   const [refreshing, setRefreshing] = useState(false);
