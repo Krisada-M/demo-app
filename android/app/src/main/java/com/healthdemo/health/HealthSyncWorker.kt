@@ -39,6 +39,16 @@ class HealthSyncWorker(
 
     return try {
       val store = HealthStore(applicationContext)
+      val writer = HealthConnectWriter(applicationContext)
+      
+      // STEP 1: Write pending buckets to Health Connect first
+      val pending = store.getPendingBuckets(100)
+      if (pending.isNotEmpty()) {
+        val writeResults = writer.writeBuckets(pending)
+        store.markWritten(writeResults)
+      }
+      
+      // STEP 2: Read from Health Connect to sync external data
       val today = BangkokTime.nowLocalDate()
       val dates = listOf(today, today.minusDays(1))
       dates.forEach { date ->
@@ -46,23 +56,28 @@ class HealthSyncWorker(
         val totalsByHour = reader.readHourlyTotals(date)
         ranges.forEach { range ->
           val totals = totalsByHour[range.hourLocal]
-          store.upsertBucketSnapshot(
-            dateLocal = range.dateLocal,
-            hourLocal = range.hourLocal,
-            startTimeUtc = range.startTimeUtc,
-            endTimeUtc = range.endTimeUtc,
-            steps = totals?.steps ?: 0L,
-            distanceMeters = totals?.distanceMeters ?: 0.0,
-            activeKcal = totals?.activeKcal ?: 0.0,
-            source = "HC_SYNC",
-          )
+          val existing = store.getBucket(range.dateLocal, range.hourLocal)
+          
+          // Only overwrite if not pending (to preserve local measurements)
+          if (existing?.hcStatus != "PENDING") {
+            store.upsertBucketSnapshot(
+              dateLocal = range.dateLocal,
+              hourLocal = range.hourLocal,
+              startTimeUtc = range.startTimeUtc,
+              endTimeUtc = range.endTimeUtc,
+              steps = totals?.steps ?: 0L,
+              distanceMeters = totals?.distanceMeters ?: 0.0,
+              activeKcal = totals?.activeKcal ?: 0.0,
+              source = "HC_SYNC",
+            )
+          }
         }
       }
       prefs.setLastSyncUtcMs(now)
       prefs.setStatus(HealthSyncPrefs.STATUS_IDLE)
       Result.success()
     } catch (error: Exception) {
-      prefs.setStatus(HealthSyncPrefs.STATUS_ERROR, "Health sync failed")
+      prefs.setStatus(HealthSyncPrefs.STATUS_ERROR, "Health sync failed: ${error.message}")
       Result.retry()
     }
   }

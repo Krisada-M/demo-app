@@ -205,7 +205,7 @@ class HealthStore(context: Context) {
     val hcUuids: String,
   )
 
-  private fun getBucket(dateLocal: String, hourLocal: Int): HourlyBucket? {
+  fun getBucket(dateLocal: String, hourLocal: Int): HourlyBucket? {
     val db = dbHelper.readableDatabase
     val cursor = db.query(
       HealthDbHelper.TABLE_HOURLY_BUCKETS,

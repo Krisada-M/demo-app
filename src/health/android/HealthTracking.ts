@@ -118,4 +118,12 @@ export const getPendingBuckets = async (
   return HealthTracking.getPendingBuckets(limit);
 };
 
+export const writeToHealthConnect = async (): Promise<number> => {
+  if (!isAndroidNative) return 0;
+  const module = HealthTracking as NativeHealthTracking & {
+    writeToHealthConnect: () => Promise<number>;
+  };
+  return module.writeToHealthConnect();
+};
+
 export type { PendingBucket, SyncStatus, UserProfile };

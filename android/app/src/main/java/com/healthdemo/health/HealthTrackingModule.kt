@@ -68,6 +68,32 @@ class HealthTrackingModule(private val reactContext: ReactApplicationContext) : 
   }
 
   @ReactMethod
+  fun writeToHealthConnect(promise: Promise) {
+    try {
+      val store = HealthStore(reactContext)
+      val writer = HealthConnectWriter(reactContext)
+      val pending = store.getPendingBuckets(100)
+      
+      if (pending.isEmpty()) {
+        promise.resolve(0)
+        return
+      }
+      
+      kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        try {
+          val results = writer.writeBuckets(pending)
+          store.markWritten(results)
+          promise.resolve(results.size)
+        } catch (error: Exception) {
+          promise.reject("WRITE_ERROR", error)
+        }
+      }
+    } catch (error: Exception) {
+      promise.reject("WRITE_ERROR", error)
+    }
+  }
+
+  @ReactMethod
   fun getLastSyncStatus(promise: Promise) {
     try {
       promise.resolve(buildSyncStatus())
