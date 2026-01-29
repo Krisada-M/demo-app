@@ -29,7 +29,7 @@ const MetricTabs: React.FC<Props> = ({
             styles.tab,
             selected === tab.type && [
               styles.activeTab,
-              { borderColor: accentColor },
+              { backgroundColor: accentColor },
             ],
           ]}
           onPress={() => onSelect(tab.type)}
@@ -37,10 +37,7 @@ const MetricTabs: React.FC<Props> = ({
           <Text
             style={[
               styles.tabText,
-              selected === tab.type && [
-                styles.activeTabText,
-                { color: accentColor },
-              ],
+              selected === tab.type && styles.activeTabText,
             ]}
           >
             {tab.label}
@@ -54,10 +51,12 @@ const MetricTabs: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#F7EDE9',
+    backgroundColor: tokens.colors.background, // Cleaner background
     borderRadius: tokens.radius.pill,
-    padding: 6,
+    padding: 4,
     marginVertical: tokens.spacing.md,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
   },
   tab: {
     flex: 1,
@@ -81,7 +80,8 @@ const styles = StyleSheet.create({
     color: tokens.colors.textMuted,
   },
   activeTabText: {
-    color: tokens.colors.textPrimary,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });
 

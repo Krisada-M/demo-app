@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { tokens } from '../ui/tokens';
-import NativeVictory from './NativeVictory';
+import { VictoryGroup, VictoryLine, VictoryArea } from './NativeVictory';
 
 interface MeasurementRowCardProps {
   label: string;
@@ -24,7 +24,6 @@ const MeasurementRowCard: React.FC<MeasurementRowCardProps> = ({
   data,
   onPress,
 }) => {
-  const { VictoryGroup, VictoryLine, VictoryArea } = NativeVictory;
 
   return (
     <TouchableOpacity

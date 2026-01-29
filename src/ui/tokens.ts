@@ -2,40 +2,51 @@ import { Platform } from 'react-native';
 
 export const tokens = {
   colors: {
-    background: '#FFFFFF',
+    // Foundation
+    background: '#F8F9FA', // Soft gray-white instead of stark white
     card: '#FFFFFF',
-    border: '#F1F3F5',
-    textPrimary: '#1A1A1A',
-    textSecondary: '#495057',
-    textMuted: '#868E96',
-    accent: '#FF6B6B',
-    accentSoft: '#FFF0F0',
-    success: '#51CF66',
-    info: '#339AF0',
-    warning: '#FCC419',
-    gradientTop: '#FFF8F8',
-    
-    // Metric specific colors (Premium palette)
-    steps: '#FF922B',
-    stepsSoft: 'rgba(255, 146, 43, 0.12)',
-    calories: '#FF6B6B',
-    caloriesSoft: 'rgba(255, 107, 107, 0.12)',
-    distance: '#339AF0',
-    distanceSoft: 'rgba(51, 154, 240, 0.12)',
+    textPrimary: '#111827', // Darker cool gray for sharp text
+    textSecondary: '#4B5563', // Medium cool gray
+    textMuted: '#9CA3AF',
+    border: '#E5E7EB',
 
-    // Dribbble Transformation palette
-    mesh1: '#FFF0F0', // Soft pink
-    mesh2: '#F0F4FF', // Soft blue
-    mesh3: '#FFF9F0', // Soft peach
-    meshAccent: '#FF6B6B',
+    // Accents (Premium Wellness Palette)
+    accent: '#F97316', // Vibrant Orange
+    accentSoft: '#FFEDD5', // Soft Orange
+    
+    success: '#10B981', // Emerald
+    info: '#3B82F6', // Blue
+    warning: '#F59E0B', // Amber
+    error: '#EF4444', // Red
+
+    // Gradients & Mesh
+    gradientStart: '#FDFBF7', // Warm off-white
+    gradientEnd: '#E6EFFD',   // Cool faint blue
+    overlay: 'rgba(255, 255, 255, 0.6)',
+
+    // Metric specific (Vibrant but harmonious)
+    steps: '#F97316', // Orange
+    stepsSoft: 'rgba(249, 115, 22, 0.12)',
+    calories: '#F43F5E', // Rose
+    caloriesSoft: 'rgba(244, 63, 94, 0.12)',
+    distance: '#0EA5E9', // Sky Blue
+    distanceSoft: 'rgba(14, 165, 233, 0.12)',
+  },
+  glass: {
+    default: {
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      borderColor: 'rgba(255, 255, 255, 0.8)',
+      borderWidth: 1,
+    }
   },
   radius: {
-    card: 32, // More rounded for Dribbble look
+    card: 24,
     full: 999,
     pill: 20,
     icon: 16,
-    sm: 10,
-    md: 14,
+    sm: 8,
+    md: 12,
+    lg: 16,
   },
   spacing: {
     xs: 8,
@@ -46,56 +57,61 @@ export const tokens = {
   },
   shadows: {
     soft: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
+      shadowColor: '#171717',
+      shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.04,
-      shadowRadius: 10,
+      shadowRadius: 6,
       elevation: 2,
     },
     medium: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 10 },
+      shadowColor: '#171717',
+      shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.06,
-      shadowRadius: 20,
+      shadowRadius: 16,
       elevation: 4,
     },
     high: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 16 },
+      shadowColor: '#171717',
+      shadowOffset: { width: 0, height: 12 },
       shadowOpacity: 0.1,
-      shadowRadius: 30,
+      shadowRadius: 24,
       elevation: 10,
     },
-    accent: {
-      shadowColor: '#FF6B6B',
+    // Colored glow for accents
+    glow: {
+      shadowColor: '#F97316',
       shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.15,
-      shadowRadius: 12,
-      elevation: 4,
+      shadowOpacity: 0.25,
+      shadowRadius: 16,
+      elevation: 6,
     }
   },
   typography: {
     title: {
-      fontSize: 32,
-      fontWeight: '700' as const,
-      letterSpacing: -0.5,
-      fontFamily: Platform.select({ ios: 'Times New Roman', android: 'serif' }),
+      fontSize: 34,
+      fontWeight: '800' as const,
+      letterSpacing: -0.8,
+      fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-black' }),
+      color: '#111827',
     },
     heading: {
-      fontSize: 22,
-      fontWeight: '600' as const,
-      letterSpacing: -0.2,
-      fontFamily: Platform.select({ ios: 'Times New Roman', android: 'serif' }),
+      fontSize: 24,
+      fontWeight: '700' as const,
+      letterSpacing: -0.5,
+      fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium' }),
+      color: '#1F2937',
     },
     body: {
       fontSize: 16,
       fontWeight: '500' as const,
-      fontFamily: Platform.select({ ios: 'AvenirNext-Medium', android: 'sans-serif-medium' }),
+      fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }),
+      color: '#374151',
+      lineHeight: 24,
     },
     caption: {
-      fontSize: 12,
-      fontWeight: '400' as const,
-      color: '#868E96',
+      fontSize: 13,
+      fontWeight: '500' as const,
+      color: '#6B7280',
     }
   }
 };

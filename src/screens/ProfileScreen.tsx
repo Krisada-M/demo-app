@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { HealthLayer } from '../health/HealthLayer';
 import type { UserProfile } from '../health/userProfile';
 import { tokens } from '../ui/tokens';
+import { GradientBackground } from '../components/GradientBackground';
 
 const ProfileScreen = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -75,6 +76,7 @@ const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <GradientBackground />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.card}>
           <Text style={styles.title}>Profile & Estimates</Text>

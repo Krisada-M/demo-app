@@ -12,6 +12,8 @@ import {
   VictoryArea as BaseVictoryArea,
   VictoryScatter as BaseVictoryScatter,
   VictoryChart as BaseVictoryChart,
+  VictoryGroup as BaseVictoryGroup,
+  VictoryLine as BaseVictoryLine,
   VictoryContainer,
   VictoryLabel,
   VictoryVoronoiContainer,
@@ -25,6 +27,8 @@ type BarProps = React.ComponentProps<typeof BaseVictoryBar>;
 type AreaProps = React.ComponentProps<typeof BaseVictoryArea>;
 type ScatterProps = React.ComponentProps<typeof BaseVictoryScatter>;
 type ChartProps = React.ComponentProps<typeof BaseVictoryChart>;
+type GroupProps = React.ComponentProps<typeof BaseVictoryGroup>;
+type LineProps = React.ComponentProps<typeof BaseVictoryLine>;
 
 export const VictoryAxis = (props: AxisProps) => (
   <BaseVictoryAxis
@@ -83,6 +87,25 @@ export const VictoryChart = (props: ChartProps) => (
       dependent: <VictoryAxis dependentAxis />,
     }}
     prependDefaultAxes={true}
+    width={defaultWidth}
+    {...props}
+  />
+);
+
+export const VictoryGroup = (props: GroupProps) => (
+  <BaseVictoryGroup
+    containerComponent={<VictoryContainer />}
+    groupComponent={<G />}
+    width={defaultWidth}
+    {...props}
+  />
+);
+
+export const VictoryLine = (props: LineProps) => (
+  <BaseVictoryLine
+    groupComponent={<G />}
+    labelComponent={<VictoryLabel />}
+    containerComponent={<VictoryContainer />}
     width={defaultWidth}
     {...props}
   />

@@ -60,7 +60,7 @@ const MetricChart: React.FC<Props> = ({ data, metric, accentColor }) => {
             axis: { stroke: 'transparent' },
             ticks: { stroke: 'transparent' },
             tickLabels: { fill: tokens.colors.textMuted, fontSize: 12, fontWeight: '600' },
-            grid: { stroke: tokens.colors.border, strokeWidth: 1 },
+            grid: { stroke: tokens.colors.border, strokeWidth: 1, strokeDasharray: '4, 4' },
           }}
           tickValues={chartData.map(d => d.x)}
           tickFormat={(t) => chartData[t - 1]?.label ?? ''}
@@ -87,8 +87,8 @@ const MetricChart: React.FC<Props> = ({ data, metric, accentColor }) => {
           style={{
             data: {
               stroke: fillColor,
-              strokeWidth: 2,
-              strokeLinecap: 'square',
+              strokeWidth: 3,
+              strokeLinecap: 'round',
             },
           }}
           animate={{

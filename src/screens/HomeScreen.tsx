@@ -8,7 +8,9 @@ import {
   RefreshControl,
   ActivityIndicator,
   Platform,
+  Dimensions,
 } from 'react-native';
+import { GradientBackground } from '../components/GradientBackground';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HealthLayer } from '../health/HealthLayer';
 import { DailyMetrics, HealthStatus, MetricType } from '../health/models';
@@ -61,6 +63,8 @@ const METRIC_META: Record<
 
 const formatFullDate = (date: Date) =>
   `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+
+
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('steps');
@@ -247,7 +251,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       ) : (
         <View style={styles.screenWrap}>
-          <View style={styles.backgroundGradient} />
+          <GradientBackground />
           <ScrollView
             refreshControl={
               <RefreshControl
@@ -260,7 +264,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             showsVerticalScrollIndicator={false}
           >
             <HomeHeader
-              greeting="Good day, Nurturer"
+              greeting="Good day"
               dateLabel={formatFullDate(new Date())}
             />
 
@@ -327,14 +331,7 @@ const styles = StyleSheet.create({
   screenWrap: {
     flex: 1,
   },
-  backgroundGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 450, // Slightly taller
-    backgroundColor: tokens.colors.gradientTop,
-  },
+
   content: {
     paddingHorizontal: tokens.spacing.md,
     paddingBottom: tokens.spacing.xl,
@@ -363,13 +360,12 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     marginTop: tokens.spacing.sm,
-    backgroundColor: tokens.colors.card,
+    ...tokens.glass.default, // Use new glass token
     borderRadius: tokens.radius.card,
     padding: tokens.spacing.md,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    ...tokens.shadows.medium,
+    // ...tokens.shadows.soft,
   },
+
   indicatorsRow: {
     flexDirection: 'row',
     justifyContent: 'center',

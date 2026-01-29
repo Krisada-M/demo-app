@@ -89,21 +89,30 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
       selectedMetric === 'steps'
         ? 'steps'
         : selectedMetric === 'activeCaloriesKcal'
-        ? 'kcal'
-        : 'm';
+          ? 'kcal'
+          : 'm';
     const icon =
       selectedMetric === 'steps'
         ? 'S'
         : selectedMetric === 'activeCaloriesKcal'
-        ? 'C'
-        : 'D';
+          ? 'C'
+          : 'D';
     const hour = String(item.hourIndex).padStart(2, '0');
+    const color =
+      selectedMetric === 'steps'
+        ? tokens.colors.steps
+        : selectedMetric === 'activeCaloriesKcal'
+          ? tokens.colors.calories
+          : tokens.colors.distance;
+
     return (
       <MeasurementRowCard
-        iconLabel={icon}
+        icon={icon}
         value={item[selectedMetric]}
         unit={unit}
-        timeLabel={`${hour}:00–${hour}:59`}
+        label={`${hour}:00–${hour}:59`}
+        color={color}
+        data={[]} // No sparkline data for hourly granularity
       />
     );
   };
@@ -112,8 +121,8 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
     selectedMetric === 'steps'
       ? hour.sources.steps === 'estimated'
       : selectedMetric === 'activeCaloriesKcal'
-      ? hour.sources.activeCalories === 'estimated'
-      : hour.sources.distance === 'estimated',
+        ? hour.sources.activeCalories === 'estimated'
+        : hour.sources.distance === 'estimated',
   );
 
   const listHeader = (
@@ -209,7 +218,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 300,
-    backgroundColor: tokens.colors.gradientTop,
+    backgroundColor: tokens.colors.gradientStart,
   },
   backgroundGlow: {
     position: 'absolute',
