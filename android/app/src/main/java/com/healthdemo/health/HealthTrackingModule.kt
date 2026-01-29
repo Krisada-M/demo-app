@@ -10,10 +10,15 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import java.time.LocalDate
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class HealthTrackingModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   private val store = HealthStore(reactContext)
   private val profileStore = UserProfileStore(reactContext)
+  private val moduleScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
   override fun getName(): String = NAME
 
@@ -79,7 +84,7 @@ class HealthTrackingModule(private val reactContext: ReactApplicationContext) : 
         return
       }
       
-      kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+      moduleScope.launch {
         try {
           val results = writer.writeBuckets(pending)
           store.markWritten(results)
