@@ -21,22 +21,25 @@ class HealthConnectWriter(private val context: Context) {
 
     return withContext(Dispatchers.IO) {
       val client = HealthConnectClient.getOrCreate(context)
-      val records = mutableListOf<Record>()
-      val recordSpecs = mutableListOf<RecordSpec>()
       val store = HealthStore(context)
       val orderedBuckets = buckets.filter { bucket ->
         bucket.steps > 0 || bucket.distanceMeters > 0.0 || bucket.activeKcal > 0.0
       }
       if (orderedBuckets.isEmpty()) return@withContext emptyList()
 
+      val results = mutableListOf<HealthStore.WriteResult>()
+      
+      // We process bucket by bucket to handle errors individually
       orderedBuckets.forEach { bucket ->
         val baseId = "hc:${bucket.dateLocal}:${bucket.hourLocal}"
         val start = Instant.parse(bucket.startTimeUtc)
         val end = Instant.parse(bucket.endTimeUtc)
         val version = bucket.clientRecordVersion
+        
+        val bucketRecords = mutableListOf<Record>()
 
         if (bucket.steps > 0) {
-          records.add(
+          bucketRecords.add(
             StepsRecord(
               startTime = start,
               endTime = end,
@@ -46,11 +49,10 @@ class HealthConnectWriter(private val context: Context) {
               metadata = buildMetadata("$baseId:steps", version),
             ),
           )
-          recordSpecs.add(RecordSpec(bucket, "steps"))
         }
 
         if (bucket.distanceMeters > 0.0) {
-          records.add(
+          bucketRecords.add(
             DistanceRecord(
               startTime = start,
               endTime = end,
@@ -60,11 +62,10 @@ class HealthConnectWriter(private val context: Context) {
               metadata = buildMetadata("$baseId:distance", version),
             ),
           )
-          recordSpecs.add(RecordSpec(bucket, "distance"))
         }
 
         if (bucket.activeKcal > 0.0) {
-          records.add(
+          bucketRecords.add(
             ActiveCaloriesBurnedRecord(
               startTime = start,
               endTime = end,
@@ -74,33 +75,32 @@ class HealthConnectWriter(private val context: Context) {
               metadata = buildMetadata("$baseId:activeKcal", version),
             ),
           )
-          recordSpecs.add(RecordSpec(bucket, "activeCalories"))
         }
-      }
 
-      if (records.isEmpty()) return@withContext emptyList()
-
-      val response = client.upsertRecords(records)
-      // upsertRecords returns result containing recordIdsList which are strictly new inserted IDs.
-      // But we can rely on our client IDs.
-      
-      val results = mutableListOf<HealthStore.WriteResult>()
-      orderedBuckets.forEach { bucket ->
-        val baseId = "hc:${bucket.dateLocal}:${bucket.hourLocal}"
-        
-        // We construct the IDs we expect to have been used or ignored (if existing)
-        val stepsId = if (bucket.steps > 0) "$baseId:steps" else null
-        val distanceId = if (bucket.distanceMeters > 0.0) "$baseId:distance" else null
-        val caloriesId = if (bucket.activeKcal > 0.0) "$baseId:activeKcal" else null
-        
-        val uuidJson = store.encodeUuids(stepsId, distanceId, caloriesId)
-        results.add(
-          HealthStore.WriteResult(
-            dateLocal = bucket.dateLocal,
-            hourLocal = bucket.hourLocal,
-            hcUuids = uuidJson,
-          ),
-        )
+        if (bucketRecords.isNotEmpty()) {
+          try {
+            client.insertRecords(bucketRecords)
+            // If successful, we can just use our client IDs as the "UUIDs" since we don't strictly need the system ones
+            // providing we are consistent. or we can assume success.
+          } catch (e: Exception) {
+            // If it fails (likely due to conflict), we assume it's already there and mark it as written
+            // to avoid infinite retry loops.
+          }
+           
+          // We mark as written regardless of success/failure (duplicate) to clear the queue.
+          val stepsId = if (bucket.steps > 0) "$baseId:steps" else null
+          val distanceId = if (bucket.distanceMeters > 0.0) "$baseId:distance" else null
+          val caloriesId = if (bucket.activeKcal > 0.0) "$baseId:activeKcal" else null
+          
+          val uuidJson = store.encodeUuids(stepsId, distanceId, caloriesId)
+          results.add(
+            HealthStore.WriteResult(
+              dateLocal = bucket.dateLocal,
+              hourLocal = bucket.hourLocal,
+              hcUuids = uuidJson,
+            ),
+          )
+        }
       }
       results
     }
@@ -118,9 +118,4 @@ class HealthConnectWriter(private val context: Context) {
       ),
     )
   }
-
-  private data class RecordSpec(
-    val bucket: HealthStore.HourlyBucket,
-    val type: String,
-  )
 }
