@@ -16,6 +16,7 @@ import { DailyMetrics, HealthStatus, MetricType } from '../health/models';
 import { syncNow } from '../health/android/HealthTracking';
 import { useSyncStatus } from '../health/android/useSyncStatus';
 import { formatBangkokTime } from '../health/utils/formatTime';
+import { formatDate } from '../health/utils/timeBuckets';
 import DailyChart from '../components/DailyChart';
 import MetricSummaryCard from '../components/MetricSummaryCard';
 import SegmentedMetricTabs from '../components/SegmentedMetricTabs';
@@ -123,11 +124,27 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   }, [contentOpacity, loading]);
 
   // Find today's data from the 7-day array to match hourly page
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatDate(new Date());
   const todayData = dailyData.find(day => day.date === today);
   const steps = todayData?.steps ?? 0;
   const calories = todayData?.activeCaloriesKcal ?? 0;
   const distance = todayData?.distanceMeters ?? 0;
+
+  // Calculate averages for the last 7 days
+  const averageSteps =
+    dailyData.length > 0
+      ? dailyData.reduce((sum, d) => sum + d.steps, 0) / dailyData.length
+      : 0;
+  const averageCalories =
+    dailyData.length > 0
+      ? dailyData.reduce((sum, d) => sum + d.activeCaloriesKcal, 0) /
+        dailyData.length
+      : 0;
+  const averageDistance =
+    dailyData.length > 0
+      ? dailyData.reduce((sum, d) => sum + d.distanceMeters, 0) /
+        dailyData.length
+      : 0;
 
   const renderStatusMessage = () => {
     if (status === HealthStatus.NOT_SUPPORTED) {
@@ -347,7 +364,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
               <View style={styles.sectionHeaderWide}>
                 <Text style={styles.sectionTitle}>All Health Data</Text>
-                <Text style={styles.sectionMeta}>Overview</Text>
+                <Text style={styles.sectionMeta}>7-day avg</Text>
               </View>
 
               {(
@@ -367,10 +384,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                       <Text style={styles.dataValue}>
                         {Math.round(
                           metricKey === 'distanceMeters'
-                            ? distance
+                            ? averageDistance
                             : metricKey === 'steps'
-                            ? steps
-                            : calories,
+                            ? averageSteps
+                            : averageCalories,
                         ).toLocaleString()}{' '}
                         <Text style={styles.dataUnit}>{meta.unit}</Text>
                       </Text>

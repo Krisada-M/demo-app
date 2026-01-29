@@ -114,17 +114,18 @@ const getDailySeries = async (
   const start = ranges[0].start;
   const end = ranges[ranges.length - 1].end;
 
-  const grouped = await aggregateByDuration(recordType, start, end, 'DAYS');
-  if (grouped) {
-    return ranges.map(({ date }) => grouped.get(formatDate(date)) ?? 0);
-  }
-
+  // Prefer explicit buckets for daily totals to avoid timezone-edge bucket shifts
   const aggregatedByBuckets = await aggregateByBuckets(
     recordType,
     ranges.map(range => ({ start: range.start, end: range.end })),
   );
   if (aggregatedByBuckets) {
     return aggregatedByBuckets;
+  }
+
+  const grouped = await aggregateByDuration(recordType, start, end, 'DAYS');
+  if (grouped) {
+    return ranges.map(({ date }) => grouped.get(formatDate(date)) ?? 0);
   }
 
   const fromRecords = await sumRecordsByDay(recordType, start, end);
