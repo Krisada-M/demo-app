@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { tokens } from '../../ui/tokens';
 
 interface MetricHighlight {
@@ -17,15 +17,23 @@ interface MetricHighlightsProps {
 const MetricHighlights: React.FC<MetricHighlightsProps> = ({ metrics }) => {
   return (
     <View style={styles.container}>
-      {metrics.map((metric, index) => (
+      {metrics.map((metric) => (
         <View key={metric.label} style={styles.card}>
-          <View style={[styles.iconContainer, metric.color ? { backgroundColor: metric.color + '20' } : {}]}>
-            <Text style={[styles.icon, metric.color ? { color: metric.color } : {}]}>{metric.icon}</Text>
+          <View style={[styles.iconContainer, 
+            metric.label === 'Steps' && { backgroundColor: tokens.colors.steps + '15' },
+            metric.label === 'Calories' && { backgroundColor: tokens.colors.calories + '15' },
+            metric.label === 'Distance' && { backgroundColor: tokens.colors.distance + '15' },
+          ]}>
+            <Text style={[styles.icon, 
+               metric.label === 'Steps' && { color: tokens.colors.steps },
+               metric.label === 'Calories' && { color: tokens.colors.calories },
+               metric.label === 'Distance' && { color: tokens.colors.distance },
+            ]}>{metric.icon}</Text>
           </View>
-          <View style={styles.content}>
-            <Text style={styles.value}>{metric.value.toLocaleString()}</Text>
+          <Text style={styles.label}>{metric.label}</Text>
+          <View style={styles.valueRow}>
+            <Text style={styles.value}>{typeof metric.value === 'number' ? metric.value.toLocaleString() : metric.value}</Text>
             <Text style={styles.unit}>{metric.unit}</Text>
-            <Text style={styles.label}>{metric.label}</Text>
           </View>
         </View>
       ))}
@@ -37,57 +45,55 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: tokens.spacing.sm,
+    gap: 12,
     marginVertical: tokens.spacing.md,
   },
   card: {
     flex: 1,
     backgroundColor: tokens.colors.card,
     borderRadius: tokens.radius.card,
-    padding: tokens.spacing.md,
+    padding: 16,
     borderWidth: 1,
     borderColor: tokens.colors.border,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    alignItems: 'flex-start',
+    ...tokens.shadows.soft,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     backgroundColor: tokens.colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   icon: {
     fontSize: 16,
     fontWeight: '900',
     color: tokens.colors.accent,
   },
-  content: {
-    alignItems: 'center',
+  label: {
+    fontSize: 13,
+    color: tokens.colors.textMuted,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 2,
   },
   value: {
     fontSize: 18,
     fontWeight: '800',
     color: tokens.colors.textPrimary,
+    letterSpacing: -0.5,
   },
   unit: {
     fontSize: 11,
     fontWeight: '700',
     color: tokens.colors.textMuted,
-    textTransform: 'uppercase',
-    marginTop: 2,
-  },
-  label: {
-    fontSize: 12,
-    color: tokens.colors.textMuted,
-    marginTop: 4,
-    fontWeight: '500',
+    marginLeft: 2,
   },
 });
 

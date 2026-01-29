@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 220,
+    height: 300,
     backgroundColor: tokens.colors.gradientTop,
   },
   backgroundGlow: {
@@ -218,83 +218,97 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: '#F9D8C8',
-    opacity: 0.35,
+    backgroundColor: tokens.colors.accentSoft,
+    opacity: 0.6,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    backgroundColor: tokens.colors.background,
+    paddingHorizontal: tokens.spacing.md,
+    paddingTop: tokens.spacing.sm,
+    marginBottom: tokens.spacing.sm,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: tokens.colors.textPrimary,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    marginTop: 2,
+    fontSize: 14,
+    color: tokens.colors.textMuted,
+    fontWeight: '500',
   },
   periodRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginTop: tokens.spacing.sm,
-    marginBottom: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.md,
+    marginBottom: tokens.spacing.md,
+    gap: 8,
   },
   periodPill: {
     flex: 1,
     paddingVertical: 8,
-    marginHorizontal: 4,
-    borderRadius: 999,
-    backgroundColor: '#F6ECE6',
+    borderRadius: tokens.radius.pill,
+    backgroundColor: tokens.colors.background,
     alignItems: 'center',
-  },
-  periodPillActive: {
-    backgroundColor: tokens.colors.card,
     borderWidth: 1,
     borderColor: tokens.colors.border,
+  },
+  periodPillActive: {
+    backgroundColor: tokens.colors.textPrimary,
+    borderWidth: 1,
+    borderColor: tokens.colors.textPrimary,
   },
   periodText: {
     fontSize: 12,
     color: tokens.colors.textMuted,
-  },
-  periodTextActive: {
-    color: tokens.colors.textPrimary,
     fontWeight: '600',
   },
-  title: {
-    fontSize: 18,
+  periodTextActive: {
+    color: '#FFFFFF',
     fontWeight: '700',
-    color: tokens.colors.textPrimary,
   },
-  subtitle: {
-    marginTop: 4,
+  chartWrapper: {
+    paddingHorizontal: tokens.spacing.md,
+    paddingBottom: tokens.spacing.sm,
+    marginTop: tokens.spacing.sm,
+  },
+  estimatedNote: {
+    marginTop: 8,
     fontSize: 12,
     color: tokens.colors.textMuted,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  listContent: {
+    padding: tokens.spacing.md,
+    paddingBottom: 40,
+  },
+  listTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 12,
+    marginTop: tokens.spacing.md,
+    color: tokens.colors.textPrimary,
+  },
+  noDataText: {
+    textAlign: 'center',
+    color: tokens.colors.textMuted,
+    paddingVertical: 20,
+    fontSize: 14,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  chartWrapper: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  listContent: {
-    padding: 16,
-    paddingTop: 8,
-    paddingBottom: 32,
-  },
-  listTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 12,
-    color: tokens.colors.textPrimary,
-  },
-  estimatedNote: {
-    marginTop: 4,
-    fontSize: 12,
+  loadingText: {
+    marginTop: 16,
     color: tokens.colors.textMuted,
-    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '600',
   },
-  noDataText: {
-    textAlign: 'center',
-    color: tokens.colors.textMuted,
-    paddingVertical: 16,
-  },
+  // Reused status styles
   alertBox: {
     backgroundColor: '#FFE5E5',
     padding: 16,
@@ -303,24 +317,21 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   alertText: {
-    color: '#D8000C',
+    color: tokens.colors.warning,
     textAlign: 'center',
+    fontWeight: '600',
   },
   infoBox: {
-    backgroundColor: '#E8F1FF',
+    backgroundColor: tokens.colors.accentSoft,
     padding: 16,
     borderRadius: 12,
     marginHorizontal: 16,
     marginTop: 8,
   },
   infoText: {
-    color: '#1E5FBF',
+    color: tokens.colors.accent,
     textAlign: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    color: tokens.colors.textMuted,
-    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { tokens } from '../../ui/tokens';
-import WeeklyProgressIndicator from '../WeeklyProgressIndicator';
 
 interface HomeHeaderProps {
   greeting: string;
@@ -11,13 +10,15 @@ interface HomeHeaderProps {
 const HomeHeader: React.FC<HomeHeaderProps> = ({ greeting, dateLabel }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.textBlock}>
-        <Text style={styles.todayLabel}>Today</Text>
-        <Text style={styles.greeting}>{greeting}</Text>
-        <Text style={styles.dateText}>{dateLabel}</Text>
-      </View>
-      <View style={styles.statsRow}>
-        <WeeklyProgressIndicator />
+      <View style={styles.topRow}>
+        <View style={styles.textBlock}>
+          <Text style={styles.greeting}>{greeting}</Text>
+          <Text style={styles.dateText}>{dateLabel}</Text>
+        </View>
+        <TouchableOpacity style={styles.iconButton}>
+          <Text style={styles.iconText}>🔔</Text>
+          <View style={styles.dot} />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -25,26 +26,22 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({ greeting, dateLabel }) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: tokens.spacing.md,
+    paddingHorizontal: tokens.spacing.sm,
+    paddingTop: tokens.spacing.md,
+    paddingBottom: tokens.spacing.sm,
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
   textBlock: {
-    alignItems: 'center',
-    marginBottom: tokens.spacing.lg,
-  },
-  todayLabel: {
-    fontSize: 13,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    fontWeight: '700',
-    color: tokens.colors.accent,
-    marginBottom: 4,
+    flex: 1,
   },
   greeting: {
     fontSize: 28,
     fontWeight: '800',
     color: tokens.colors.textPrimary,
-    textAlign: 'center',
     fontFamily: Platform.select({
       ios: 'AvenirNext-Bold',
       android: 'sans-serif-medium',
@@ -52,14 +49,35 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   dateText: {
-    marginTop: 6,
+    marginTop: 4,
     fontSize: 14,
     fontWeight: '600',
     color: tokens.colors.textMuted,
   },
-  statsRow: {
-    width: '100%',
-    marginTop: tokens.spacing.sm,
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 16, // Softer square
+    backgroundColor: tokens.colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+    ...tokens.shadows.soft,
+  },
+  iconText: {
+    fontSize: 20,
+  },
+  dot: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: tokens.colors.accent,
+    borderWidth: 1.5,
+    borderColor: tokens.colors.card,
   },
 });
 

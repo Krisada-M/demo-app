@@ -17,7 +17,6 @@ import { useSyncStatus } from '../health/android/useSyncStatus';
 import { formatBangkokTime } from '../health/utils/formatTime';
 import { formatDate } from '../health/utils/timeBuckets';
 import DailyChart from '../components/DailyChart';
-import MetricSummaryCard from '../components/MetricSummaryCard';
 import SegmentedMetricTabs from '../components/SegmentedMetricTabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -121,28 +120,28 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   }, [loading, contentOpacity]);
 
   const todayStr = formatDate(new Date());
-  const todayData = dailyData.find(day => day.date === todayStr);
+  const todayData = dailyData.find(day => day.date === todayStr) || dailyData[dailyData.length - 1];
   
   const metrics = [
     {
       label: 'Steps',
       value: Math.round(todayData?.steps ?? 0),
       unit: 'steps',
-      icon: 'S',
+      icon: '👣',
       color: METRIC_META.steps.color,
     },
     {
       label: 'Calories',
       value: Math.round(todayData?.activeCaloriesKcal ?? 0),
       unit: 'kcal',
-      icon: 'C',
+      icon: '🔥',
       color: METRIC_META.activeCaloriesKcal.color,
     },
     {
       label: 'Distance',
-      value: Math.round(todayData?.distanceMeters ?? 0),
-      unit: 'm',
-      icon: 'D',
+      value: ((todayData?.distanceMeters ?? 0) / 1000).toFixed(1),
+      unit: 'km',
+      icon: '📍',
       color: METRIC_META.distanceMeters.color,
     },
   ];
@@ -157,6 +156,28 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     }, 1000);
   };
 
+  const handleMock = async () => {
+    try {
+      setSyncing(true);
+      const perm = await HealthLayer.ensurePermissions();
+      if (perm !== HealthStatus.OK) {
+        console.warn('Cannot inject mock data: permissions not granted');
+        setSyncing(false);
+        return;
+      }
+      
+      await HealthLayer.mockWrite();
+      // Brief delay to allow Health Connect to settle before reading back
+      setTimeout(async () => {
+        await loadData(true);
+        setSyncing(false);
+      }, 800);
+    } catch (error) {
+      console.error('Mock write failed:', error);
+      setSyncing(false);
+    }
+  };
+
   const syncStateLabel = () => {
     if (!syncStatus) return 'Idle';
     if (syncStatus.status === 'SYNCING') return 'Syncing';
@@ -165,7 +186,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const selectedMeta = METRIC_META[selectedMetric];
-  const selectedValue = todayData ? Math.round(todayData[selectedMetric]) : 0;
   
   const actions = [
     {
@@ -245,25 +265,22 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               )}
 
               <MetricHighlights metrics={metrics} />
+              
+              <View style={styles.indicatorsRow}>
+                <View style={[styles.indicator, styles.activeIndicator]} />
+                <View style={styles.indicator} />
+                <View style={styles.indicator} />
+              </View>
 
               <View style={styles.chartSection}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Weekly Activity</Text>
-                  <Text style={styles.sectionSubtitle}>Last 7 days trend</Text>
                 </View>
                 
-                <SegmentedMetricTabs
-                  selected={selectedMetric}
-                  onSelect={setSelectedMetric}
-                />
-
                 <View style={styles.chartContainer}>
-                  <MetricSummaryCard
-                    label={selectedMeta.label}
-                    value={selectedValue}
-                    unit={selectedMeta.unit}
-                    iconLabel={selectedMeta.icon}
-                    accentColor={selectedMeta.color}
+                  <SegmentedMetricTabs
+                    selected={selectedMetric}
+                    onSelect={setSelectedMetric}
                   />
                   
                   <DailyChart
@@ -279,6 +296,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                   statusLabel={syncStateLabel()}
                   lastSynced={formatBangkokTime(syncStatus?.lastWriteUtcMs)}
                   onSync={handleSync}
+                  onMock={handleMock}
                   isSyncing={syncing}
                 />
               )}
@@ -327,18 +345,14 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.lg,
   },
   sectionHeader: {
-    marginBottom: tokens.spacing.md,
+    marginBottom: tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.xs,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: tokens.colors.textPrimary,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: tokens.colors.textMuted,
-    fontWeight: '500',
-    marginTop: 2,
+    letterSpacing: -0.5,
   },
   chartContainer: {
     marginTop: tokens.spacing.md,
@@ -347,6 +361,23 @@ const styles = StyleSheet.create({
     padding: tokens.spacing.md,
     borderWidth: 1,
     borderColor: tokens.colors.border,
+  },
+  indicatorsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: -8,
+    marginBottom: tokens.spacing.sm,
+  },
+  indicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: tokens.colors.border,
+  },
+  activeIndicator: {
+    backgroundColor: tokens.colors.accent,
+    width: 12,
   },
   alertBox: {
     backgroundColor: '#FFE5E5',

@@ -6,6 +6,7 @@ interface SyncStatusCardProps {
   statusLabel: string;
   lastSynced: string;
   onSync: () => void;
+  onMock?: () => void;
   isSyncing: boolean;
 }
 
@@ -13,6 +14,7 @@ const SyncStatusCard: React.FC<SyncStatusCardProps> = ({
   statusLabel,
   lastSynced,
   onSync,
+  onMock,
   isSyncing,
 }) => {
   return (
@@ -36,6 +38,11 @@ const SyncStatusCard: React.FC<SyncStatusCardProps> = ({
       </View>
       <View style={styles.footer}>
         <Text style={styles.lastSyncedText}>Last updated {lastSynced}</Text>
+        {onMock && (
+          <TouchableOpacity onPress={onMock} style={styles.mockButton}>
+            <Text style={styles.mockButtonText}>Inject Mock Data</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -87,11 +94,25 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: tokens.colors.border,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   lastSyncedText: {
     fontSize: 12,
     color: tokens.colors.textMuted,
     fontWeight: '500',
+  },
+  mockButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: tokens.colors.accentSoft,
+  },
+  mockButtonText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: tokens.colors.accent,
   },
 });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { VictoryTheme } from 'victory-native';
-import { VictoryBar, VictoryChart } from './NativeVictory';
+import { VictoryBar, VictoryChart, VictoryAxis, VictoryArea, VictoryScatter } from './NativeVictory';
 import { HourlyMetrics, MetricType } from '../health/models';
 import { tokens } from '../ui/tokens';
 
@@ -26,29 +26,71 @@ const HourlyChart: React.FC<Props> = ({ data, metric, accentColor }) => {
   }
 
   const currentHour = new Date().getHours();
-  const fillColor = accentColor ?? tokens.colors.accent;
+  // Determine color based on metric type if accentColor not provided or generic
+  let activeColor = tokens.colors.accent;
+  if (metric === 'steps') activeColor = tokens.colors.steps;
+  if (metric === 'activeCaloriesKcal') activeColor = tokens.colors.calories;
+  if (metric === 'distanceMeters') activeColor = tokens.colors.distance;
+
+  const fillColor = accentColor && accentColor !== tokens.colors.accent ? accentColor : activeColor;
   const maxValue = Math.max(...chartData.map(point => point.y), 1);
+
+  // Future Zone Data (shade from next hour to 23)
+  const futureStart = currentHour + 1;
+  const futureData = [
+    { x: futureStart, y: maxValue * 1.25 },
+    { x: 23, y: maxValue * 1.25 },
+  ];
 
   return (
     <View style={styles.chartContainer}>
       <VictoryChart
         theme={VictoryTheme.material}
         domainPadding={{ x: 12 }}
-        width={Dimensions.get('window').width - 32}
-        height={220}
+        width={Dimensions.get('window').width - 130} // Nearly full width
+        height={240}
+        padding={{ top: 20, bottom: 40, left: 10, right: 10 }}
         prependDefaultAxes={false}
-        domain={{ y: [0, maxValue * 1.3] }}
+        domain={{ x: [0, 23], y: [0, maxValue * 1.25] }}
       >
+
+        {/* Y-Axis Guidelines */}
+        <VictoryAxis
+          dependentAxis
+          style={{
+            axis: { stroke: 'transparent' },
+            grid: { stroke: tokens.colors.border, strokeDasharray: '4, 4', strokeWidth: 1 },
+            tickLabels: { fill: tokens.colors.textMuted, fontSize: 10, padding: 4 },
+          }}
+          tickValues={[maxValue]}
+          tickFormat={(t) => Math.round(t).toLocaleString()}
+        />
+
         <VictoryBar
           data={chartData}
           style={{
             data: {
-              fill: ({ datum }) => (datum.x === currentHour ? fillColor : tokens.colors.border),
-              width: 8,
+              fill: ({ datum }) => (datum.x === currentHour ? fillColor : tokens.colors.textMuted),
+              fillOpacity: ({ datum }) => (datum.x === currentHour ? 1 : datum.x > currentHour ? 0.1 : 0.4),
+              width: 10,
             },
           }}
           cornerRadius={{ top: 4, bottom: 4 }}
+          animate={{
+            duration: 600,
+            onLoad: { duration: 400 },
+          }}
         />
+
+        {/* "Current Hour" Label */}
+        {chartData.find(d => d.x === currentHour) && (
+          <VictoryScatter
+            data={[{ x: currentHour, y: maxValue * 1.15 }]}
+            size={0}
+            labels={() => "Now"}
+            style={{ labels: { fill: fillColor, fontSize: 10, fontWeight: "bold" } }}
+          />
+        )}
       </VictoryChart>
     </View>
   );
@@ -59,15 +101,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: tokens.colors.card,
     borderRadius: tokens.radius.card,
-    padding: 8,
+    paddingVertical: 16,
     marginVertical: 10,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    shadowColor: '#5B4134',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 2,
+    borderWidth: 0,
+    ...tokens.shadows.soft,
   },
   emptyState: {
     width: Dimensions.get('window').width - 64,

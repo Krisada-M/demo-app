@@ -3,6 +3,7 @@ import {
   aggregateRecord,
   getSdkStatus,
   initialize,
+  insertRecords,
   Permission,
   readRecords,
   requestPermission,
@@ -29,6 +30,9 @@ const PERMISSIONS: Permission[] = [
   { accessType: 'read', recordType: 'Steps' },
   { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
   { accessType: 'read', recordType: 'Distance' },
+  { accessType: 'write', recordType: 'Steps' },
+  { accessType: 'write', recordType: 'ActiveCaloriesBurned' },
+  { accessType: 'write', recordType: 'Distance' },
 ];
 
 export const ensurePermissions = async (): Promise<HealthStatus> => {
@@ -80,6 +84,69 @@ export const getDailyLast7Days = async (): Promise<DailyMetrics[]> => {
   } catch (error) {
     console.error('Android getDailyLast7Days error:', error);
     return createEmptyDailySeries();
+  }
+};
+
+export const mockWriteRecords = async (): Promise<void> => {
+  try {
+    const today = new Date();
+    const startTime = new Date(today);
+    startTime.setHours(today.getHours() - 1, 0, 0, 0);
+    const endTime = new Date(today);
+    endTime.setHours(today.getHours(), 0, 0, 0);
+
+    const steps = [
+      {
+        recordType: 'Steps',
+        count: 1250,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+      },
+    ];
+    const calories = [
+      {
+        recordType: 'ActiveCaloriesBurned',
+        energy: { value: 45.5, unit: 'kilocalories' },
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+      },
+    ];
+    const distance = [
+      {
+        recordType: 'Distance',
+        distance: { value: 850.0, unit: 'meters' },
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+      },
+    ];
+
+    console.log('[HealthConnect] Starting isolated mock injection...');
+    
+    try {
+      const res = await insertRecords(steps as any);
+      console.log('[HealthConnect] Steps mock OK:', res);
+    } catch (e: any) {
+      console.error('[HealthConnect] Steps mock FAILED:', e.message);
+    }
+
+    try {
+      const res = await insertRecords(calories as any);
+      console.log('[HealthConnect] Calories mock OK:', res);
+    } catch (e: any) {
+      console.error('[HealthConnect] Calories mock FAILED:', e.message);
+    }
+
+    try {
+      const res = await insertRecords(distance as any);
+      console.log('[HealthConnect] Distance mock OK:', res);
+    } catch (e: any) {
+      console.error('[HealthConnect] Distance mock FAILED:', e.message);
+    }
+    
+    console.log('[HealthConnect] Mock injection process completed.');
+  } catch (error) {
+    console.error('Android mockWriteRecords error:', error);
+    throw error;
   }
 };
 
