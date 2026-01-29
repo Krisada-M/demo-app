@@ -80,23 +80,19 @@ class HealthConnectWriter(private val context: Context) {
 
       if (records.isEmpty()) return@withContext emptyList()
 
-      val response = client.insertRecords(records)
-      val ids = response.recordIdsList
-
-      val idsByBucket = mutableMapOf<String, MutableMap<String, String?>>()
-      recordSpecs.forEachIndexed { index, spec ->
-        val key = "${spec.bucket.dateLocal}:${spec.bucket.hourLocal}"
-        val map = idsByBucket.getOrPut(key) { mutableMapOf() }
-        map[spec.type] = ids.getOrNull(index)
-      }
-
+      val response = client.upsertRecords(records)
+      // upsertRecords returns result containing recordIdsList which are strictly new inserted IDs.
+      // But we can rely on our client IDs.
+      
       val results = mutableListOf<HealthStore.WriteResult>()
       orderedBuckets.forEach { bucket ->
-        val key = "${bucket.dateLocal}:${bucket.hourLocal}"
-        val map = idsByBucket[key]
-        val stepsId = map?.get("steps")
-        val distanceId = map?.get("distance")
-        val caloriesId = map?.get("activeCalories")
+        val baseId = "hc:${bucket.dateLocal}:${bucket.hourLocal}"
+        
+        // We construct the IDs we expect to have been used or ignored (if existing)
+        val stepsId = if (bucket.steps > 0) "$baseId:steps" else null
+        val distanceId = if (bucket.distanceMeters > 0.0) "$baseId:distance" else null
+        val caloriesId = if (bucket.activeKcal > 0.0) "$baseId:activeKcal" else null
+        
         val uuidJson = store.encodeUuids(stepsId, distanceId, caloriesId)
         results.add(
           HealthStore.WriteResult(
