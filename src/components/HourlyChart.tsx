@@ -16,6 +16,7 @@ const HourlyChart: React.FC<Props> = ({ data, metric, accentColor }) => {
     x: d.hourIndex,
     y: d[metric],
   }));
+
   if (chartData.length === 0) {
     return (
       <View style={styles.chartContainer}>
@@ -23,6 +24,7 @@ const HourlyChart: React.FC<Props> = ({ data, metric, accentColor }) => {
       </View>
     );
   }
+
   const currentHour = new Date().getHours();
   const fillColor = accentColor ?? tokens.colors.accent;
   const maxValue = Math.max(...chartData.map(point => point.y), 1);
@@ -31,24 +33,21 @@ const HourlyChart: React.FC<Props> = ({ data, metric, accentColor }) => {
     <View style={styles.chartContainer}>
       <VictoryChart
         theme={VictoryTheme.material}
-        domainPadding={{ x: 10 }}
+        domainPadding={{ x: 12 }}
         width={Dimensions.get('window').width - 32}
         height={220}
         prependDefaultAxes={false}
-        domain={{ y: [0, maxValue * 1.25] }}
+        domain={{ y: [0, maxValue * 1.3] }}
       >
         <VictoryBar
           data={chartData}
           style={{
             data: {
-              fill: fillColor,
-              fillOpacity: ({ datum }) => {
-                if (datum.y === 0) return 0.12;
-                return datum.x === currentHour ? 1 : 0.35;
-              },
+              fill: ({ datum }) => (datum.x === currentHour ? fillColor : tokens.colors.border),
+              width: 8,
             },
           }}
-          cornerRadius={{ top: 6, bottom: 6 }}
+          cornerRadius={{ top: 4, bottom: 4 }}
         />
       </VictoryChart>
     </View>

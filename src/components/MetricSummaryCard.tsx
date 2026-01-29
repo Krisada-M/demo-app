@@ -23,26 +23,24 @@ const MetricSummaryCard: React.FC<Props> = ({
 }) => {
   return (
     <View style={styles.card}>
-      <View style={styles.row}>
-        <View style={[styles.iconWrap, { borderColor: accentColor }]}>
-          <View style={[styles.iconDot, { backgroundColor: accentColor }]} />
+      <View style={styles.header}>
+        <View style={[styles.iconContainer, { backgroundColor: tokens.colors.accentSoft }]}>
           <Text style={[styles.iconText, { color: accentColor }]}>
             {iconLabel ?? label[0]}
           </Text>
         </View>
-        <View style={styles.textCol}>
+        <View style={styles.titleArea}>
           <Text style={styles.subtitle}>{subtitle}</Text>
           <Text style={styles.label}>{label}</Text>
         </View>
-        {badgeText ? (
+        {badgeText && (
           <View style={[styles.badge, { borderColor: accentColor }]}>
-            <Text style={[styles.badgeText, { color: accentColor }]}>
-              {badgeText}
-            </Text>
+            <Text style={[styles.badgeText, { color: accentColor }]}>{badgeText}</Text>
           </View>
-        ) : null}
+        )}
       </View>
-      <View style={styles.valueRow}>
+
+      <View style={styles.valueContainer}>
         <Text style={styles.value}>{value.toLocaleString()}</Text>
         <Text style={styles.unit}>{unit}</Text>
       </View>
@@ -54,83 +52,76 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: tokens.colors.card,
     borderRadius: tokens.radius.card,
+    padding: tokens.spacing.lg,
+    marginBottom: tokens.spacing.md,
     borderWidth: 1,
     borderColor: tokens.colors.border,
-    padding: tokens.spacing.md,
-    marginBottom: tokens.spacing.md,
     shadowColor: '#5B4134',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.08,
-    shadowRadius: 14,
-    elevation: 2,
+    shadowRadius: 20,
+    elevation: 3,
   },
-  row: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    marginBottom: tokens.spacing.md,
   },
-  iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    borderWidth: 1,
+  iconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: tokens.radius.icon,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: tokens.colors.accentSoft,
-  },
-  iconDot: {
-    position: 'absolute',
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    top: 8,
-    right: 8,
   },
   iconText: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
   },
-  textCol: {
-    marginLeft: tokens.spacing.sm,
+  titleArea: {
     flex: 1,
+    marginLeft: tokens.spacing.sm,
+  },
+  subtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: tokens.colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  label: {
+    marginTop: 2,
+    fontSize: 16,
+    fontWeight: '700',
+    color: tokens.colors.textPrimary,
   },
   badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: tokens.radius.pill,
     borderWidth: 1,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
     backgroundColor: tokens.colors.accentSoft,
   },
   badgeText: {
     fontSize: 11,
     fontWeight: '600',
   },
-  subtitle: {
-    fontSize: 12,
-    color: tokens.colors.textMuted,
-  },
-  label: {
-    marginTop: 2,
-    fontSize: 14,
-    fontWeight: '600',
-    color: tokens.colors.textPrimary,
-  },
-  valueRow: {
+  valueContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginTop: tokens.spacing.sm,
+    alignItems: 'baseline',
   },
   value: {
-    fontSize: 30,
-    fontWeight: '700',
+    fontSize: 42,
+    fontWeight: '800',
     color: tokens.colors.textPrimary,
-    letterSpacing: 0.3,
+    letterSpacing: -0.5,
   },
   unit: {
     marginLeft: tokens.spacing.xs,
-    fontSize: 13,
+    fontSize: 16,
+    fontWeight: '500',
     color: tokens.colors.textMuted,
-    paddingBottom: 4,
+    marginBottom: 4,
   },
 });
 

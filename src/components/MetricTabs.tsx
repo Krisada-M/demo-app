@@ -54,14 +54,14 @@ const MetricTabs: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#F6ECE6',
+    backgroundColor: '#F7EDE9',
     borderRadius: tokens.radius.pill,
-    padding: 4,
-    marginVertical: 14,
+    padding: 6,
+    marginVertical: tokens.spacing.md,
   },
   tab: {
     flex: 1,
-    paddingVertical: 9,
+    paddingVertical: 10,
     alignItems: 'center',
     borderRadius: tokens.radius.pill,
     borderWidth: 1,
@@ -70,13 +70,13 @@ const styles = StyleSheet.create({
   activeTab: {
     backgroundColor: tokens.colors.card,
     shadowColor: '#5B4134',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: tokens.colors.textMuted,
   },

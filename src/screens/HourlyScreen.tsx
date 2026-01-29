@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -124,9 +125,10 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
 
       <View style={styles.periodRow}>
         {PERIOD_OPTIONS.map((label, index) => (
-          <View
+          <TouchableOpacity
             key={label}
             style={[styles.periodPill, index === 0 && styles.periodPillActive]}
+            activeOpacity={0.7}
           >
             <Text
               style={[
@@ -136,7 +138,7 @@ const HourlyScreen: React.FC<Props> = ({ route }) => {
             >
               {label}
             </Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
 

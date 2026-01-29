@@ -16,24 +16,24 @@ const MeasurementRowCard: React.FC<Props> = ({
   timeLabel,
 }) => {
   return (
-    <View style={styles.row}>
-      <View style={styles.iconWrap}>
+    <View style={styles.card}>
+      <View style={styles.iconContainer}>
         <Text style={styles.iconText}>{iconLabel}</Text>
       </View>
-      <View style={styles.textCol}>
+      <View style={styles.content}>
         <Text style={styles.value}>
-          {value.toLocaleString()} {unit}
+          {value.toLocaleString()} <Text style={styles.unit}>{unit}</Text>
         </Text>
         <Text style={styles.time}>{timeLabel}</Text>
       </View>
       <View style={styles.sparkline}>
-        {[0, 1, 2, 3, 4].map(index => (
+        {[0, 1, 2, 3, 4].map(idx => (
           <View
-            key={index}
+            key={idx}
             style={[
               styles.sparkBar,
-              { height: 6 + index * 2 },
-              index === 4 && styles.sparkBarActive,
+              { height: 5 + idx * 3, opacity: idx === 4 ? 1 : 0.3 },
+              idx === 4 && { backgroundColor: tokens.colors.accent },
             ]}
           />
         ))}
@@ -43,20 +43,20 @@ const MeasurementRowCard: React.FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
-  row: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: tokens.colors.card,
-    borderRadius: 18,
+    borderRadius: 20,
     padding: tokens.spacing.md,
     marginBottom: tokens.spacing.sm,
     borderWidth: 1,
     borderColor: tokens.colors.border,
   },
-  iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: tokens.colors.accentSoft,
@@ -64,34 +64,37 @@ const styles = StyleSheet.create({
   iconText: {
     color: tokens.colors.accent,
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 14,
   },
-  textCol: {
+  content: {
     flex: 1,
     marginLeft: tokens.spacing.sm,
   },
   value: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: tokens.colors.textPrimary,
+  },
+  unit: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: tokens.colors.textMuted,
   },
   time: {
     marginTop: 2,
     fontSize: 11,
     color: tokens.colors.textMuted,
+    fontWeight: '500',
   },
   sparkline: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 3,
+    gap: 4,
   },
   sparkBar: {
-    width: 4,
-    borderRadius: 4,
+    width: 3.5,
+    borderRadius: 2,
     backgroundColor: tokens.colors.border,
-  },
-  sparkBarActive: {
-    backgroundColor: tokens.colors.accent,
   },
 });
 

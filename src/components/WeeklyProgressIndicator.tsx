@@ -7,56 +7,61 @@ const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const WeeklyProgressIndicator = () => {
   const todayIndex = ((new Date().getDay() + 6) % 7) as number;
   return (
-    <View style={styles.row}>
-      {DAYS.map((label, index) => {
-        const isToday = index === todayIndex;
-        return (
-          <View key={`${label}-${index}`} style={styles.item}>
-            <View
-              style={[
-                styles.ring,
-                isToday && {
-                  borderColor: tokens.colors.accent,
-                  backgroundColor: tokens.colors.accentSoft,
-                },
-              ]}
-            />
-            <Text style={[styles.label, isToday && styles.labelActive]}>
-              {label}
-            </Text>
-          </View>
-        );
-      })}
+    <View style={styles.container}>
+      <View style={styles.row}>
+        {DAYS.map((label, index) => {
+          const isToday = index === todayIndex;
+          return (
+            <View key={`${label}-${index}`} style={styles.item}>
+              <View
+                style={[
+                  styles.dot,
+                  isToday && {
+                    backgroundColor: tokens.colors.accent,
+                    transform: [{ scale: 1.2 }],
+                  },
+                ]}
+              />
+              <Text style={[styles.label, isToday && styles.labelActive]}>
+                {label}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    paddingVertical: tokens.spacing.md,
+    alignItems: 'center',
+  },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: tokens.spacing.md,
+    justifyContent: 'center',
+    gap: tokens.spacing.md,
   },
   item: {
     alignItems: 'center',
-    width: 36,
+    width: 32,
   },
-  ring: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: tokens.colors.border,
-    backgroundColor: tokens.colors.card,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: tokens.colors.border,
+    marginBottom: 8,
   },
   label: {
-    marginTop: 6,
-    fontSize: 10,
+    fontSize: 11,
+    fontWeight: '500',
     color: tokens.colors.textMuted,
   },
   labelActive: {
     color: tokens.colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
 

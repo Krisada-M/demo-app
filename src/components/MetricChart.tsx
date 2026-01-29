@@ -16,6 +16,7 @@ const MetricChart: React.FC<Props> = ({ data, metric, accentColor }) => {
     x: index + 1,
     y: d[metric],
   }));
+
   if (chartData.length === 0) {
     return (
       <View style={styles.chartContainer}>
@@ -23,6 +24,7 @@ const MetricChart: React.FC<Props> = ({ data, metric, accentColor }) => {
       </View>
     );
   }
+
   const lastIndex = chartData.length - 1;
   const fillColor = accentColor ?? tokens.colors.accent;
   const avgValue =
@@ -37,16 +39,16 @@ const MetricChart: React.FC<Props> = ({ data, metric, accentColor }) => {
         theme={VictoryTheme.material}
         domainPadding={{ x: 20 }}
         width={Dimensions.get('window').width - 32}
-        height={250}
+        height={220}
         prependDefaultAxes={false}
-        domain={{ y: [0, maxValue * 1.25] }}
+        domain={{ y: [0, maxValue * 1.3] }}
       >
         <VictoryBar
           data={chartData}
           style={{
             data: {
-              fill: fillColor,
-              fillOpacity: ({ index }) => (index === lastIndex ? 1 : 0.35),
+              fill: ({ index }) => (index === lastIndex ? fillColor : tokens.colors.border),
+              width: 12,
             },
           }}
           cornerRadius={{ top: 6, bottom: 6 }}
@@ -56,13 +58,16 @@ const MetricChart: React.FC<Props> = ({ data, metric, accentColor }) => {
           }}
         />
         <VictoryLine
-          data={chartData.map(point => ({ x: point.x, y: avgValue }))}
+          data={[
+            { x: 0.5, y: avgValue },
+            { x: chartData.length + 0.5, y: avgValue },
+          ]}
           style={{
             data: {
               stroke: tokens.colors.textMuted,
               strokeWidth: 1,
-              strokeDasharray: '4,6',
-              opacity: 0.5,
+              strokeDasharray: '4,4',
+              opacity: 0.4,
             },
           }}
         />
