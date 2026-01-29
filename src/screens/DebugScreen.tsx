@@ -13,6 +13,7 @@ import {
   startHourlyHealthSync,
   stopHourlyHealthSync,
   syncNow,
+  writeToHealthConnect,
 } from '../health/android/HealthTracking';
 import type { PendingBucket } from '../health/android/HealthTracking';
 import { formatBangkokTime } from '../health/utils/formatTime';
@@ -53,6 +54,17 @@ const DebugScreen = () => {
 
   const handleSync = () => {
     syncNow();
+    setTimeout(refreshAll, 600);
+  };
+
+  const handleForceWrite = async () => {
+    setRefreshing(true);
+    try {
+      const count = await writeToHealthConnect();
+      console.log(`[Debug] Force wrote ${count} records`);
+    } catch (e) {
+      console.error('[Debug] Force write failed', e);
+    }
     setTimeout(refreshAll, 600);
   };
 
@@ -112,6 +124,15 @@ const DebugScreen = () => {
                   </Text>
                 </TouchableOpacity>
               </View>
+
+              <TouchableOpacity
+                style={[styles.secondaryButton, { marginTop: 12, borderColor: tokens.colors.accent }]}
+                onPress={handleForceWrite}
+              >
+                <Text style={[styles.secondaryButtonText, { color: tokens.colors.accent }]}>
+                  Flush DB to Health Connect
+                </Text>
+              </TouchableOpacity>
 
               <TouchableOpacity style={styles.linkButton} onPress={refreshAll}>
                 <Text style={styles.linkButtonText}>
