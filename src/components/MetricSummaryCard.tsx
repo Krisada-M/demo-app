@@ -56,11 +56,7 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.md,
     borderWidth: 1,
     borderColor: tokens.colors.border,
-    shadowColor: '#5B4134',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 3,
+    ...tokens.shadows.medium,
   },
   header: {
     flexDirection: 'row',

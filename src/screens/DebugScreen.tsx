@@ -3,26 +3,25 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   Platform,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  getPendingBuckets,
   startHourlyHealthSync,
   stopHourlyHealthSync,
   syncNow,
   writeToHealthConnect,
 } from '../health/android/HealthTracking';
-import type { PendingBucket } from '../health/android/HealthTracking';
+import { HealthLayer } from '../health/HealthLayer';
 import { formatBangkokTime } from '../health/utils/formatTime';
 import { useSyncStatus } from '../health/android/useSyncStatus';
 import { tokens } from '../ui/tokens';
 
 // Debug screen for tracking and sync status
 const DebugScreen = () => {
-  const [pending, setPending] = useState<PendingBucket[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const { status: syncStatus, refresh: refreshStatus } = useSyncStatus({
     autoRefresh: false,
@@ -31,11 +30,7 @@ const DebugScreen = () => {
   const refreshAll = async () => {
     if (Platform.OS !== 'android') return;
     setRefreshing(true);
-    const [nextPending] = await Promise.all([
-      getPendingBuckets(24),
-      refreshStatus(),
-    ]);
-    setPending(nextPending);
+    await refreshStatus();
     setRefreshing(false);
   };
 
@@ -68,6 +63,19 @@ const DebugScreen = () => {
     setTimeout(refreshAll, 600);
   };
 
+  const handleExport = async () => {
+    try {
+      const data = await HealthLayer.getDailyLast7Days();
+      const json = JSON.stringify(data, null, 2);
+      await Share.share({
+        message: json,
+        title: 'Health Data Export',
+      });
+    } catch (e) {
+      console.error('Export failed', e);
+    }
+  };
+
   if (Platform.OS !== 'android') {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -80,91 +88,69 @@ const DebugScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <FlatList
-        data={pending}
-        keyExtractor={item => `${item.dateLocal}-${item.hourLocal}`}
-        contentContainerStyle={styles.content}
-        refreshing={refreshing}
-        onRefresh={refreshAll}
-        ListHeaderComponent={
-          <>
-            <View style={styles.card}>
-              <Text style={styles.title}>Tracking & Sync</Text>
-              <Text style={styles.metaText}>
-                Tracking: {syncStatus?.trackingEnabled ? 'On' : 'Off'}
-              </Text>
-              <Text style={styles.metaText}>
-                Status: {syncStatus?.status ?? 'IDLE'}
-              </Text>
-              <Text style={styles.metaText}>
-                Last sync: {formatBangkokTime(syncStatus?.lastWriteUtcMs)}
-              </Text>
-              {syncStatus?.status === 'ERROR' ? (
-                <Text style={styles.errorText}>
-                  {syncStatus.lastError ?? 'Sync failed'}
-                </Text>
-              ) : null}
-              <Text style={styles.metaText}>
-                Pending buckets: {syncStatus?.pendingCount ?? 0}
-              </Text>
-
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.primaryButton}
-                  onPress={handleSync}
-                >
-                  <Text style={styles.primaryButtonText}>Sync now</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.secondaryButton}
-                  onPress={handleToggleTracking}
-                >
-                  <Text style={styles.secondaryButtonText}>
-                    {syncStatus?.trackingEnabled ? 'Stop' : 'Start'} tracking
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.secondaryButton, { marginTop: 12, borderColor: tokens.colors.accent }]}
-                onPress={handleForceWrite}
-              >
-                <Text style={[styles.secondaryButtonText, { color: tokens.colors.accent }]}>
-                  Flush DB to Health Connect
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.linkButton} onPress={refreshAll}>
-                <Text style={styles.linkButtonText}>
-                  {refreshing ? 'Refreshing...' : 'Refresh status'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.sectionTitle}>Pending hourly buckets</Text>
-          </>
-        }
-        renderItem={({ item }) => (
-          <View style={styles.bucketRow}>
-            <View>
-              <Text style={styles.bucketTitle}>
-                {item.dateLocal} - {String(item.hourLocal).padStart(2, '0')}:00
-              </Text>
-              <Text style={styles.bucketMeta}>
-                Steps {item.steps.toFixed(0)} | Dist{' '}
-                {item.distanceMeters.toFixed(1)}m | Kcal{' '}
-                {item.activeKcal.toFixed(1)}
-              </Text>
-            </View>
-            <Text style={styles.bucketVersion}>
-              v{item.clientRecordVersion}
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Tracking & Sync</Text>
+          <Text style={styles.metaText}>
+            Tracking: {syncStatus?.trackingEnabled ? 'On' : 'Off'}
+          </Text>
+          <Text style={styles.metaText}>
+            Status: {syncStatus?.status ?? 'IDLE'}
+          </Text>
+          <Text style={styles.metaText}>
+            Last sync: {formatBangkokTime(syncStatus?.lastWriteUtcMs)}
+          </Text>
+          {syncStatus?.status === 'ERROR' ? (
+            <Text style={styles.errorText}>
+              {syncStatus.lastError ?? 'Sync failed'}
             </Text>
+          ) : null}
+          <Text style={styles.metaText}>
+            Pending records: {syncStatus?.pendingCount ?? 0}
+          </Text>
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleSync}
+            >
+              <Text style={styles.primaryButtonText}>Sync now</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handleToggleTracking}
+            >
+              <Text style={styles.secondaryButtonText}>
+                {syncStatus?.trackingEnabled ? 'Stop' : 'Start'} tracking
+              </Text>
+            </TouchableOpacity>
           </View>
-        )}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No pending buckets.</Text>
-        }
-      />
+
+          <TouchableOpacity
+            style={[styles.secondaryButton, { marginTop: 12, borderColor: tokens.colors.accent }]}
+            onPress={handleForceWrite}
+          >
+            <Text style={[styles.secondaryButtonText, { color: tokens.colors.accent }]}>
+              Flush DB to Health Connect
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.secondaryButton, { marginTop: 12, borderColor: tokens.colors.info }]}
+            onPress={handleExport}
+          >
+            <Text style={[styles.secondaryButtonText, { color: tokens.colors.info }]}>
+              Export Data (JSON)
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.linkButton} onPress={refreshAll}>
+            <Text style={styles.linkButtonText}>
+              {refreshing ? 'Refreshing...' : 'Refresh status'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

@@ -19,15 +19,15 @@ const MetricHighlights: React.FC<MetricHighlightsProps> = ({ metrics }) => {
     <View style={styles.container}>
       {metrics.map((metric) => (
         <View key={metric.label} style={styles.card}>
-          <View style={[styles.iconContainer, 
-            metric.label === 'Steps' && { backgroundColor: tokens.colors.steps + '15' },
-            metric.label === 'Calories' && { backgroundColor: tokens.colors.calories + '15' },
-            metric.label === 'Distance' && { backgroundColor: tokens.colors.distance + '15' },
+          <View style={[styles.iconContainer,
+          metric.label === 'Steps' && { backgroundColor: tokens.colors.stepsSoft },
+          metric.label === 'Calories' && { backgroundColor: tokens.colors.caloriesSoft },
+          metric.label === 'Distance' && { backgroundColor: tokens.colors.distanceSoft },
           ]}>
-            <Text style={[styles.icon, 
-               metric.label === 'Steps' && { color: tokens.colors.steps },
-               metric.label === 'Calories' && { color: tokens.colors.calories },
-               metric.label === 'Distance' && { color: tokens.colors.distance },
+            <Text style={[styles.icon,
+            metric.label === 'Steps' && { color: tokens.colors.steps },
+            metric.label === 'Calories' && { color: tokens.colors.calories },
+            metric.label === 'Distance' && { color: tokens.colors.distance },
             ]}>{metric.icon}</Text>
           </View>
           <Text style={styles.label}>{metric.label}</Text>
@@ -45,35 +45,33 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: tokens.spacing.sm,
     marginVertical: tokens.spacing.md,
   },
   card: {
     flex: 1,
     backgroundColor: tokens.colors.card,
     borderRadius: tokens.radius.card,
-    padding: 16,
+    padding: tokens.spacing.md,
     borderWidth: 1,
     borderColor: tokens.colors.border,
     alignItems: 'flex-start',
     ...tokens.shadows.soft,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: tokens.colors.accentSoft,
+    width: 40,
+    height: 40,
+    borderRadius: tokens.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: tokens.spacing.sm,
   },
   icon: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '900',
-    color: tokens.colors.accent,
   },
   label: {
-    fontSize: 13,
+    ...tokens.typography.caption,
     color: tokens.colors.textMuted,
     fontWeight: '600',
     marginBottom: 4,
@@ -84,12 +82,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   value: {
+    ...tokens.typography.heading,
     fontSize: 18,
-    fontWeight: '800',
     color: tokens.colors.textPrimary,
-    letterSpacing: -0.5,
   },
   unit: {
+    ...tokens.typography.caption,
     fontSize: 11,
     fontWeight: '700',
     color: tokens.colors.textMuted,

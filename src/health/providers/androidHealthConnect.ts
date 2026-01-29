@@ -181,15 +181,6 @@ const getDailySeries = async (
   const start = ranges[0].start;
   const end = ranges[ranges.length - 1].end;
 
-  // Prefer explicit buckets for daily totals to avoid timezone-edge bucket shifts
-  const aggregatedByBuckets = await aggregateByBuckets(
-    recordType,
-    ranges.map(range => ({ start: range.start, end: range.end })),
-  );
-  if (aggregatedByBuckets) {
-    return aggregatedByBuckets;
-  }
-
   const grouped = await aggregateByDuration(recordType, start, end, 'DAYS');
   if (grouped) {
     return ranges.map(({ date }) => grouped.get(formatDate(date)) ?? 0);
@@ -213,14 +204,6 @@ const getHourlySeries = async (
   const grouped = await aggregateByDuration(recordType, start, end, 'HOURS');
   if (grouped) {
     return ranges.map(({ hourIndex }) => grouped.get(hourIndex) ?? 0);
-  }
-
-  const aggregatedByBuckets = await aggregateByBuckets(
-    recordType,
-    ranges.map(range => ({ start: range.start, end: range.end })),
-  );
-  if (aggregatedByBuckets) {
-    return aggregatedByBuckets;
   }
 
   const fromRecords = await sumRecordsByHour(recordType, start, end);
@@ -324,31 +307,6 @@ const sumRecordsByHour = async (
     return totals;
   } catch (error) {
     console.warn('Android readRecords hourly fallback failed.', error);
-    return null;
-  }
-};
-
-const aggregateByBuckets = async (
-  recordType: MetricRecordType,
-  ranges: { start: Date; end: Date }[],
-): Promise<number[] | null> => {
-  try {
-    const results = await Promise.all(
-      ranges.map(range =>
-        aggregateRecord({
-          recordType,
-          timeRangeFilter: {
-            operator: 'between',
-            startTime: toLocalISOString(range.start),
-            endTime: toLocalISOString(range.end),
-          },
-        }),
-      ),
-    );
-
-    return results.map(result => getAggregateValue(recordType, result));
-  } catch (error) {
-    console.warn(`Error aggregating ${recordType} buckets:`, error);
     return null;
   }
 };

@@ -63,12 +63,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 16,
-    fontWeight: '800',
+    ...tokens.typography.heading,
+    fontSize: 16, // Refining heading size for card title
     color: tokens.colors.textPrimary,
   },
   subtitle: {
-    fontSize: 13,
+    ...tokens.typography.caption,
     fontWeight: '600',
     color: tokens.colors.textMuted,
     marginTop: 2,
@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   },
   syncButtonText: {
     color: '#FFF',
+    ...tokens.typography.body,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   lastSyncedText: {
-    fontSize: 12,
+    ...tokens.typography.caption,
     color: tokens.colors.textMuted,
     fontWeight: '500',
   },
@@ -110,6 +111,7 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.accentSoft,
   },
   mockButtonText: {
+    ...tokens.typography.caption,
     fontSize: 11,
     fontWeight: '700',
     color: tokens.colors.accent,

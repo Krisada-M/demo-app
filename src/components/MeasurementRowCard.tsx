@@ -1,100 +1,149 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { tokens } from '../ui/tokens';
+import NativeVictory from './NativeVictory';
 
-type Props = {
-  iconLabel: string;
-  value: number;
-  unit: string;
-  timeLabel: string;
-};
+interface MeasurementRowCardProps {
+  label: string;
+  value: string | number;
+  unit?: string;
+  statusText?: string;
+  icon: string;
+  color: string;
+  data: { x: number; y: number }[]; // For sparkline
+  onPress?: () => void;
+}
 
-const MeasurementRowCard: React.FC<Props> = ({
-  iconLabel,
+const MeasurementRowCard: React.FC<MeasurementRowCardProps> = ({
+  label,
   value,
   unit,
-  timeLabel,
+  statusText,
+  icon,
+  color,
+  data,
+  onPress,
 }) => {
+  const { VictoryGroup, VictoryLine, VictoryArea } = NativeVictory;
+
   return (
-    <View style={styles.card}>
-      <View style={styles.iconContainer}>
-        <Text style={styles.iconText}>{iconLabel}</Text>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.leftSide}>
+        <View style={[styles.iconContainer, { backgroundColor: color + '15' }]}>
+          <Text style={[styles.icon, { color }]}>{icon}</Text>
+        </View>
+        <View style={styles.textContainer}>
+          <Text style={styles.valueText}>
+            {value}
+            {unit && <Text style={styles.unitText}> {unit}</Text>}
+          </Text>
+          <Text style={styles.label}>{statusText || label}</Text>
+        </View>
       </View>
-      <View style={styles.content}>
-        <Text style={styles.value}>
-          {value.toLocaleString()} <Text style={styles.unit}>{unit}</Text>
-        </Text>
-        <Text style={styles.time}>{timeLabel}</Text>
+
+      <View style={styles.rightSide}>
+        <View style={styles.chartWrap}>
+          <VictoryGroup
+            width={80}
+            height={30}
+            padding={0}
+          >
+            <VictoryArea
+              data={data}
+              style={{
+                data: {
+                  fill: color,
+                  fillOpacity: 0.1,
+                  strokeWidth: 0,
+                },
+              }}
+              interpolation="monotoneX"
+            />
+            <VictoryLine
+              data={data}
+              style={{
+                data: {
+                  stroke: color,
+                  strokeWidth: 2.5,
+                },
+              }}
+              interpolation="monotoneX"
+            />
+          </VictoryGroup>
+        </View>
+        <Text style={styles.chevron}>›</Text>
       </View>
-      <View style={styles.sparkline}>
-        {[0, 1, 2, 3, 4].map(idx => (
-          <View
-            key={idx}
-            style={[
-              styles.sparkBar,
-              { height: 5 + idx * 3, opacity: idx === 4 ? 1 : 0.3 },
-              idx === 4 && { backgroundColor: tokens.colors.accent },
-            ]}
-          />
-        ))}
-      </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: tokens.colors.card,
+    borderRadius: 24, // Slightly less rounded than main card for list feel
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: tokens.colors.card,
-    borderRadius: 20,
-    padding: tokens.spacing.md,
-    marginBottom: tokens.spacing.sm,
+    justifyContent: 'space-between',
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: tokens.colors.border,
+    ...tokens.shadows.soft,
+  },
+  leftSide: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: tokens.colors.accentSoft,
   },
-  iconText: {
-    color: tokens.colors.accent,
-    fontWeight: '700',
-    fontSize: 14,
+  icon: {
+    fontSize: 18,
   },
-  content: {
-    flex: 1,
-    marginLeft: tokens.spacing.sm,
+  textContainer: {
+    justifyContent: 'center',
   },
-  value: {
-    fontSize: 15,
+  valueText: {
+    ...tokens.typography.body,
+    fontSize: 17,
     fontWeight: '700',
     color: tokens.colors.textPrimary,
   },
-  unit: {
+  unitText: {
     fontSize: 12,
-    fontWeight: '500',
-    color: tokens.colors.textMuted,
-  },
-  time: {
-    marginTop: 2,
-    fontSize: 11,
     color: tokens.colors.textMuted,
     fontWeight: '500',
   },
-  sparkline: {
+  label: {
+    ...tokens.typography.caption,
+    fontSize: 12,
+    color: tokens.colors.textMuted,
+    marginTop: 1,
+  },
+  rightSide: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 4,
+    alignItems: 'center',
+    gap: 12,
   },
-  sparkBar: {
-    width: 3.5,
-    borderRadius: 2,
-    backgroundColor: tokens.colors.border,
+  chartWrap: {
+    width: 80,
+    height: 30,
+    overflow: 'hidden',
+  },
+  chevron: {
+    fontSize: 20,
+    color: tokens.colors.border,
+    fontWeight: '600',
+    marginLeft: 4,
   },
 });
 

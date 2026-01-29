@@ -2,16 +2,6 @@ import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import type { Permission } from 'react-native';
 import type { DailyMetrics, HourlyMetrics } from '../models';
 
-type PendingBucket = {
-  dateLocal: string;
-  hourLocal: number;
-  startTimeUtc: string;
-  endTimeUtc: string;
-  steps: number;
-  distanceMeters: number;
-  activeKcal: number;
-  clientRecordVersion: number;
-};
 
 type SyncStatus = {
   status: string;
@@ -31,7 +21,6 @@ type NativeHealthTracking = {
   startTracking: () => void;
   stopTracking: () => void;
   syncNow: () => void;
-  getTodayHourlyBuckets: () => Promise<NativeHourlyMetrics[]>;
   getDailyLast7Days: () => Promise<NativeDailyMetrics[]>;
   getUserProfile: () => Promise<UserProfile>;
   setUserProfile: (
@@ -40,11 +29,9 @@ type NativeHealthTracking = {
     strideLengthMeters: number,
   ) => void;
   getSyncStatus: () => Promise<SyncStatus>;
-  getPendingBuckets: (limit: number) => Promise<PendingBucket[]>;
 };
 
 type NativeDailyMetrics = Omit<DailyMetrics, 'sources'>;
-type NativeHourlyMetrics = Omit<HourlyMetrics, 'sources'>;
 
 const HealthTracking = NativeModules.HealthTracking as
   | NativeHealthTracking
@@ -80,13 +67,6 @@ export const syncNow = () => {
   HealthTracking.syncNow();
 };
 
-export const getTodayHourlyBuckets = async (): Promise<
-  NativeHourlyMetrics[]
-> => {
-  if (!isAndroidNative) return [];
-  return HealthTracking.getTodayHourlyBuckets();
-};
-
 export const getDailyLast7Days = async (): Promise<NativeDailyMetrics[]> => {
   if (!isAndroidNative) return [];
   return HealthTracking.getDailyLast7Days();
@@ -111,13 +91,6 @@ export const getSyncStatus = async (): Promise<SyncStatus | null> => {
   return HealthTracking.getSyncStatus();
 };
 
-export const getPendingBuckets = async (
-  limit = 24,
-): Promise<PendingBucket[]> => {
-  if (!isAndroidNative) return [];
-  return HealthTracking.getPendingBuckets(limit);
-};
-
 export const writeToHealthConnect = async (): Promise<number> => {
   if (!isAndroidNative) return 0;
   const module = HealthTracking as NativeHealthTracking & {
@@ -126,4 +99,4 @@ export const writeToHealthConnect = async (): Promise<number> => {
   return module.writeToHealthConnect();
 };
 
-export type { PendingBucket, SyncStatus, UserProfile };
+export type { SyncStatus, UserProfile };

@@ -12,11 +12,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HealthLayer } from '../health/HealthLayer';
 import { DailyMetrics, HealthStatus, MetricType } from '../health/models';
-import { syncNow } from '../health/android/HealthTracking';
+import { syncNow, writeToHealthConnect } from '../health/android/HealthTracking';
 import { useSyncStatus } from '../health/android/useSyncStatus';
 import { formatBangkokTime } from '../health/utils/formatTime';
 import { formatDate } from '../health/utils/timeBuckets';
-import DailyChart from '../components/DailyChart';
+import MetricChart from '../components/MetricChart';
 import SegmentedMetricTabs from '../components/SegmentedMetricTabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -88,6 +88,15 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
+    // Auto-flush pending DB records to Health Connect on Android
+    if (Platform.OS === 'android') {
+      try {
+        await writeToHealthConnect();
+      } catch (e) {
+        console.warn('Auto-flush failed:', e);
+      }
+    }
+
     const data = await HealthLayer.getDailyLast7Days();
     setDailyData(data);
     const hasData = data.some(
@@ -121,7 +130,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   const todayStr = formatDate(new Date());
   const todayData = dailyData.find(day => day.date === todayStr) || dailyData[dailyData.length - 1];
-  
+
   const metrics = [
     {
       label: 'Steps',
@@ -165,7 +174,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         setSyncing(false);
         return;
       }
-      
+
       await HealthLayer.mockWrite();
       // Brief delay to allow Health Connect to settle before reading back
       setTimeout(async () => {
@@ -186,7 +195,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const selectedMeta = METRIC_META[selectedMetric];
-  
+
   const actions = [
     {
       title: 'Profile',
@@ -250,9 +259,9 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
           >
-            <HomeHeader 
-              greeting="Good day, Nurturer" 
-              dateLabel={formatFullDate(new Date())} 
+            <HomeHeader
+              greeting="Good day, Nurturer"
+              dateLabel={formatFullDate(new Date())}
             />
 
             <Animated.View style={{ opacity: contentOpacity }}>
@@ -265,7 +274,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               )}
 
               <MetricHighlights metrics={metrics} />
-              
+
               <View style={styles.indicatorsRow}>
                 <View style={[styles.indicator, styles.activeIndicator]} />
                 <View style={styles.indicator} />
@@ -276,14 +285,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Weekly Activity</Text>
                 </View>
-                
+
                 <View style={styles.chartContainer}>
                   <SegmentedMetricTabs
                     selected={selectedMetric}
                     onSelect={setSelectedMetric}
                   />
-                  
-                  <DailyChart
+
+                  <MetricChart
                     data={dailyData}
                     metric={selectedMetric}
                     accentColor={selectedMeta.color}
@@ -323,12 +332,12 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 400,
+    height: 450, // Slightly taller
     backgroundColor: tokens.colors.gradientTop,
   },
   content: {
     paddingHorizontal: tokens.spacing.md,
-    paddingBottom: 40,
+    paddingBottom: tokens.spacing.xl,
   },
   center: {
     flex: 1,
@@ -337,7 +346,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 16,
+    ...tokens.typography.body,
     fontWeight: '600',
     color: tokens.colors.textMuted,
   },
@@ -345,28 +354,27 @@ const styles = StyleSheet.create({
     marginTop: tokens.spacing.lg,
   },
   sectionHeader: {
-    marginBottom: tokens.spacing.sm,
-    paddingHorizontal: tokens.spacing.xs,
+    marginBottom: tokens.spacing.md,
+    paddingHorizontal: 4,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
+    ...tokens.typography.heading,
     color: tokens.colors.textPrimary,
-    letterSpacing: -0.5,
   },
   chartContainer: {
-    marginTop: tokens.spacing.md,
+    marginTop: tokens.spacing.sm,
     backgroundColor: tokens.colors.card,
     borderRadius: tokens.radius.card,
     padding: tokens.spacing.md,
     borderWidth: 1,
     borderColor: tokens.colors.border,
+    ...tokens.shadows.medium,
   },
   indicatorsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
-    marginTop: -8,
+    marginTop: -4,
     marginBottom: tokens.spacing.sm,
   },
   indicator: {
@@ -377,7 +385,7 @@ const styles = StyleSheet.create({
   },
   activeIndicator: {
     backgroundColor: tokens.colors.accent,
-    width: 12,
+    width: 14,
   },
   alertBox: {
     backgroundColor: '#FFE5E5',

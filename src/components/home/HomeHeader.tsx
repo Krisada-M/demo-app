@@ -39,25 +39,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greeting: {
-    fontSize: 28,
-    fontWeight: '800',
+    ...tokens.typography.title,
+    fontSize: 28, // Overriding size while keeping weight and letterSpacing
     color: tokens.colors.textPrimary,
-    fontFamily: Platform.select({
-      ios: 'AvenirNext-Bold',
-      android: 'sans-serif-medium',
-    }),
-    letterSpacing: -0.5,
   },
   dateText: {
     marginTop: 4,
+    ...tokens.typography.body,
     fontSize: 14,
-    fontWeight: '600',
     color: tokens.colors.textMuted,
   },
   iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 16, // Softer square
+    borderRadius: tokens.radius.md,
     backgroundColor: tokens.colors.card,
     alignItems: 'center',
     justifyContent: 'center',
