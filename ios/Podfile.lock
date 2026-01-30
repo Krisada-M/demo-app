@@ -2595,6 +2595,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNBackgroundFetch (4.3.0):
+    - React-Core
+    - TSBackgroundFetch (~> 4.0.0)
   - RNReanimated (4.2.1):
     - boost
     - DoubleConversion
@@ -2893,6 +2896,7 @@ PODS:
     - SocketRocket
     - Yoga
   - SocketRocket (0.7.1)
+  - TSBackgroundFetch (4.0.6)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2976,6 +2980,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "ReactNativeHealthkit (from `../node_modules/@kingstinct/react-native-healthkit`)"
+  - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -2986,6 +2991,7 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - SocketRocket
+    - TSBackgroundFetch
 
 EXTERNAL SOURCES:
   boost:
@@ -3147,6 +3153,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeHealthkit:
     :path: "../node_modules/@kingstinct/react-native-healthkit"
+  RNBackgroundFetch:
+    :path: "../node_modules/react-native-background-fetch"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -3238,13 +3246,15 @@ SPEC CHECKSUMS:
   ReactCodegen: 00a532a4071263d32d545e23492bec47f7f9a18f
   ReactCommon: ac934cb340aee91282ecd6f273a26d24d4c55cae
   ReactNativeHealthkit: bf41f9304cf7f90d8fade5b80a34ffbd4b53edc4
+  RNBackgroundFetch: a5c9975c270d869a666364ade366d92f7435dd74
   RNReanimated: 5e1db9c44badd510b22975e836e311e27b7cb7dd
   RNScreens: 714e10b6b554f7dc7ad9f78dcf36dc8e3fc73415
   RNSVG: ba3c3bc3cf413f32d1a7012274fe503c6fc1eadd
   RNWorklets: e70b3fdd357942153dbb9e10428ab9d32eacfdaf
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
+  TSBackgroundFetch: 0afbeaae4e1132866e1d4b6e55265af26b5958ae
   Yoga: 5456bb010373068fc92221140921b09d126b116e
 
 PODFILE CHECKSUM: 5cdebc97fe5dbf1cecaad56710d8e4153d978dcb
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
